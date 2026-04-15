@@ -162,6 +162,8 @@ export interface RegisterData extends LoginCredentials {
   role: 'dietitian' | 'patient';
   age?: string | number;
   gender?: string;
+  weight_kg?: number;
+  height_cm?: number;
   prakriti?: string;
   condition?: string;
 }

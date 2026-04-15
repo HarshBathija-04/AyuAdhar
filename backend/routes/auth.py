@@ -47,6 +47,8 @@ def register():
                 name=data['name'],
                 age=int(data.get('age', 25) or 25),
                 gender=data.get('gender', 'not specified') or 'not specified',
+                weight_kg=float(data['weight_kg']) if data.get('weight_kg') else None,
+                height_cm=float(data['height_cm']) if data.get('height_cm') else None,
                 prakriti=data.get('prakriti', 'Not Known') or 'Not Known',
                 condition=data.get('condition', ''),
                 lifestyle=''

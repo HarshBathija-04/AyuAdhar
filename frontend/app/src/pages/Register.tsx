@@ -21,6 +21,8 @@ export default function Register() {
   // Patient specific details
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
+  const [weightKg, setWeightKg] = useState('');
+  const [heightCm, setHeightCm] = useState('');
   const [prakriti, setPrakriti] = useState('');
   const [condition, setCondition] = useState('');
   
@@ -48,7 +50,7 @@ export default function Register() {
     }
 
     try {
-      await register({ name, email, password, role, age, gender, prakriti, condition });
+      await register({ name, email, password, role, age, gender, prakriti, condition, weight_kg: weightKg ? parseFloat(weightKg) : undefined, height_cm: heightCm ? parseFloat(heightCm) : undefined });
       navigate('/dashboard');
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
@@ -176,6 +178,7 @@ export default function Register() {
                         placeholder="e.g. 28"
                         value={age}
                         onChange={(e) => setAge(e.target.value)}
+                        min="1" max="120"
                         required={role === 'patient'}
                       />
                     </div>
@@ -192,6 +195,32 @@ export default function Register() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="weight_kg">Weight (kg)</Label>
+                      <Input
+                        id="weight_kg"
+                        type="number"
+                        placeholder="e.g. 65"
+                        value={weightKg}
+                        onChange={(e) => setWeightKg(e.target.value)}
+                        min="1" max="300" step="0.1"
+                        required={role === 'patient'}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="height_cm">Height (cm)</Label>
+                      <Input
+                        id="height_cm"
+                        type="number"
+                        placeholder="e.g. 165"
+                        value={heightCm}
+                        onChange={(e) => setHeightCm(e.target.value)}
+                        min="50" max="250" step="0.1"
+                        required={role === 'patient'}
+                      />
                     </div>
                   </div>
 
