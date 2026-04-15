@@ -40,6 +40,8 @@ export default function PatientForm() {
     name: '',
     age: undefined,
     gender: 'male',
+    weight_kg: undefined,
+    height_cm: undefined,
     prakriti: 'Vata',
     condition: '',
     lifestyle: ''
@@ -60,6 +62,8 @@ export default function PatientForm() {
         name: patient.name,
         age: patient.age,
         gender: patient.gender,
+        weight_kg: patient.weight_kg,
+        height_cm: patient.height_cm,
         prakriti: patient.prakriti,
         condition: patient.condition || '',
         lifestyle: patient.lifestyle || ''
@@ -76,8 +80,8 @@ export default function PatientForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.age || !formData.gender || !formData.prakriti) {
-      toast.error('Please fill in all required fields');
+    if (!formData.name || !formData.age || !formData.gender || !formData.prakriti || !formData.weight_kg || !formData.height_cm) {
+      toast.error('Please fill in all required fields including weight and height');
       return;
     }
 
@@ -161,6 +165,36 @@ export default function PatientForm() {
                     placeholder="Enter age"
                     min="1"
                     max="120"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="weight_kg">Weight (kg) *</Label>
+                  <Input
+                    id="weight_kg"
+                    type="number"
+                    value={formData.weight_kg || ''}
+                    onChange={(e) => handleChange('weight_kg', parseFloat(e.target.value) || 0)}
+                    placeholder="e.g. 65"
+                    min="1"
+                    max="300"
+                    step="0.1"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="height_cm">Height (cm) *</Label>
+                  <Input
+                    id="height_cm"
+                    type="number"
+                    value={formData.height_cm || ''}
+                    onChange={(e) => handleChange('height_cm', parseFloat(e.target.value) || 0)}
+                    placeholder="e.g. 165"
+                    min="50"
+                    max="250"
+                    step="0.1"
                     required
                   />
                 </div>

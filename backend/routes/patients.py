@@ -99,6 +99,8 @@ def create_patient():
             name=data['name'],
             age=data['age'],
             gender=data['gender'],
+            weight_kg=data.get('weight_kg'),
+            height_cm=data.get('height_cm'),
             prakriti=data['prakriti'],
             condition=data.get('condition', ''),
             lifestyle=data.get('lifestyle', '')
@@ -133,7 +135,7 @@ def update_patient(patient_id):
     data = request.get_json()
     
     # Update allowed fields
-    updatable_fields = ['name', 'age', 'gender', 'prakriti', 'condition', 'lifestyle']
+    updatable_fields = ['name', 'age', 'gender', 'weight_kg', 'height_cm', 'prakriti', 'condition', 'lifestyle']
     for field in updatable_fields:
         if field in data:
             setattr(patient, field, data[field])

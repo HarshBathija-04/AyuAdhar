@@ -44,6 +44,8 @@ class Patient(db.Model):
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), nullable=False)  # 'male', 'female', 'other'
+    weight_kg = db.Column(db.Float, nullable=True)   # Weight in kilograms
+    height_cm = db.Column(db.Float, nullable=True)   # Height in centimetres
     prakriti = db.Column(db.String(50), nullable=False)  # 'Vata', 'Pitta', 'Kapha', or combinations
     condition = db.Column(db.Text, nullable=True)  # Health conditions
     lifestyle = db.Column(db.Text, nullable=True)  # Lifestyle details
@@ -62,6 +64,8 @@ class Patient(db.Model):
             'name': self.name,
             'age': self.age,
             'gender': self.gender,
+            'weight_kg': self.weight_kg,
+            'height_cm': self.height_cm,
             'prakriti': self.prakriti,
             'condition': self.condition,
             'lifestyle': self.lifestyle,

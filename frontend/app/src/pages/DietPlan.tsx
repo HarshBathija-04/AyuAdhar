@@ -16,7 +16,9 @@ import {
   Leaf,
   Flame,
   Droplets,
-  Wind
+  Wind,
+  Scale,
+  BookOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -196,14 +198,44 @@ export default function DietPlan() {
 
       {dietPlan ? (
         <>
-          {/* Nutritional Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* BMI + Nutritional Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {/* BMI Card */}
+            {dietPlan.plan_data?.bmi_info && (() => {
+              const bmi = dietPlan.plan_data.bmi_info;
+              const catColor =
+                bmi.category === 'Underweight' ? 'text-blue-600' :
+                bmi.category === 'Normal'      ? 'text-green-600' :
+                bmi.category === 'Overweight'  ? 'text-amber-600' :
+                'text-red-600';
+              const bgColor =
+                bmi.category === 'Underweight' ? 'bg-blue-50' :
+                bmi.category === 'Normal'      ? 'bg-green-50' :
+                bmi.category === 'Overweight'  ? 'bg-amber-50' :
+                'bg-red-50';
+              return (
+                <Card className={`col-span-2 md:col-span-1 ${bgColor} border-0`}>
+                  <CardContent className="pt-6 text-center">
+                    <Scale className={`mx-auto h-5 w-5 mb-1 ${catColor}`} />
+                    <div className={`text-3xl font-bold ${catColor}`}>{bmi.bmi}</div>
+                    <p className="text-sm font-medium text-gray-700">BMI</p>
+                    <p className={`text-xs font-semibold mt-1 ${catColor}`}>{bmi.category}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {bmi.weight_kg} kg · {bmi.height_cm} cm
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })()}
             <Card>
               <CardContent className="pt-6 text-center">
                 <div className="text-3xl font-bold text-green-600">
-                  {Math.round(dietPlan.total_calories)}
+                  {Math.round(dietPlan.plan_data?.total_nutrition?.target_calories ?? dietPlan.total_calories)}
                 </div>
-                <p className="text-sm text-gray-600">Calories</p>
+                <p className="text-sm text-gray-600">Target Cal</p>
+                <p className="text-xs text-gray-400">
+                  got {Math.round(dietPlan.total_calories)}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -374,6 +406,66 @@ export default function DietPlan() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Dataset Recommendations */}
+          {dietPlan.plan_data?.dataset_recommendations && Object.keys(dietPlan.plan_data.dataset_recommendations).some(k => !!dietPlan.plan_data.dataset_recommendations![k as keyof typeof dietPlan.plan_data.dataset_recommendations]) && (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+                  <BookOpen className="h-5 w-5" />
+                  Ayurvedic Protocol (from Dataset)
+                  {dietPlan.plan_data.dataset_recommendations.disease_match && (
+                    <Badge className="bg-amber-200 text-amber-900 ml-2">
+                      {dietPlan.plan_data.dataset_recommendations.disease_match}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-amber-700">
+                  Evidence-based recommendations matched from the Ayurvedic clinical dataset
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {dietPlan.plan_data.dataset_recommendations.diet_advice && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.diet_advice}</p>
+                    </div>
+                  )}
+                  {dietPlan.plan_data.dataset_recommendations.ayurvedic_herbs && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.ayurvedic_herbs}</p>
+                    </div>
+                  )}
+                  {dietPlan.plan_data.dataset_recommendations.formulation && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Formulation</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.formulation}</p>
+                    </div>
+                  )}
+                  {dietPlan.plan_data.dataset_recommendations.yoga_therapy && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.yoga_therapy}</p>
+                    </div>
+                  )}
+                  {dietPlan.plan_data.dataset_recommendations.prevention && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Prevention</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.prevention}</p>
+                    </div>
+                  )}
+                  {dietPlan.plan_data.dataset_recommendations.patient_recommendations && (
+                    <div className="p-3 bg-white rounded-lg border border-amber-200">
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Patient Tips</p>
+                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.patient_recommendations}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Food Items */}
           {dietPlan.foods && dietPlan.foods.length > 0 && (

@@ -221,6 +221,28 @@ export default function PatientDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-gray-500">Age</Label>
+                    <p className="mt-1 font-medium">{patient.age} years</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-500">Gender</Label>
+                    <p className="mt-1 font-medium capitalize">{patient.gender}</p>
+                  </div>
+                  {patient.weight_kg && (
+                    <div>
+                      <Label className="text-gray-500">Weight</Label>
+                      <p className="mt-1 font-medium">{patient.weight_kg} kg</p>
+                    </div>
+                  )}
+                  {patient.height_cm && (
+                    <div>
+                      <Label className="text-gray-500">Height</Label>
+                      <p className="mt-1 font-medium">{patient.height_cm} cm</p>
+                    </div>
+                  )}
+                </div>
                 <div>
                   <Label className="text-gray-500">Health Conditions</Label>
                   <p className="mt-1">{patient.condition || 'None specified'}</p>

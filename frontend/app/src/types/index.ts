@@ -14,6 +14,8 @@ export interface Patient {
   name: string;
   age: number;
   gender: 'male' | 'female' | 'other';
+  weight_kg?: number;
+  height_cm?: number;
   prakriti: PrakritiType;
   condition?: string;
   lifestyle?: string;
@@ -80,6 +82,21 @@ export interface DietPlan {
       balance_status: string;
     };
     prakriti_guidelines: string;
+    bmi_info?: {
+      bmi: number;
+      category: string;
+      weight_kg: number;
+      height_cm: number;
+    };
+    dataset_recommendations?: {
+      disease_match?: string;
+      diet_advice?: string;
+      yoga_therapy?: string;
+      ayurvedic_herbs?: string;
+      formulation?: string;
+      prevention?: string;
+      patient_recommendations?: string;
+    };
   };
   total_calories: number;
   total_protein: number;
