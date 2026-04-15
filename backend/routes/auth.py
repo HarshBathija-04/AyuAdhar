@@ -8,7 +8,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Register a new user (dietitian or patient)"""
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     
     # Validate required fields
     required_fields = ['name', 'email', 'password', 'role']
@@ -46,7 +46,9 @@ def register():
         
         if new_user.role == 'patient':
             dietitian = User.query.filter_by(role='dietitian').first()
-            dietitian_id = dietitian.id if dietitian else 1
+            # If no dietitian exists yet, temporarily map patient to self so
+            # registration never fails with an invalid foreign key reference.
+            dietitian_id = dietitian.id if dietitian else new_user.id
 
             new_patient = Patient(
                 user_id=dietitian_id,
