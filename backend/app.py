@@ -33,13 +33,16 @@ def create_app(config_name='development'):
     app.config['JWT_EXPIRATION_DELTA'] = timedelta(days=7)
     
     # Enable CORS for frontend communication
+    frontend_origins = os.environ.get('FRONTEND_ORIGINS')
+    allowed_origins = (
+        [origin.strip() for origin in frontend_origins.split(',') if origin.strip()]
+        if frontend_origins
+        else "*"
+    )
+
     CORS(app, resources={
         r"/api/*": {
-            "origins": [
-                "http://localhost:3000", 
-                "http://localhost:5173", 
-                "https://ayu-adhar.vercel.app"
-            ],
+            "origins": allowed_origins,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Authorization", "Content-Type"]
         }
@@ -419,4 +422,3 @@ if __name__ == '__main__':
     
     # Run the application
     app.run(host='0.0.0.0', port=5000, debug=True)
-

@@ -8,7 +8,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Register a new user (dietitian or patient)"""
-    data = request.get_json()
+    data = request.get_json() or {}
     
     # Validate required fields
     required_fields = ['name', 'email', 'password', 'role']
@@ -19,6 +19,13 @@ def register():
     # Validate role
     if data['role'] not in ['dietitian', 'patient']:
         return jsonify({'message': 'Role must be either dietitian or patient'}), 400
+
+    # Validate additional required fields for patient accounts
+    if data['role'] == 'patient':
+        patient_required_fields = ['age', 'gender', 'weight_kg', 'height_cm']
+        for field in patient_required_fields:
+            if data.get(field) in [None, '']:
+                return jsonify({'message': f'{field} is required for patient registration'}), 400
     
     # Check if email already exists
     existing_user = User.query.filter_by(email=data['email']).first()
@@ -46,7 +53,7 @@ def register():
                 patient_user_id=new_user.id,
                 name=data['name'],
                 age=int(data.get('age', 25) or 25),
-                gender=data.get('gender', 'not specified') or 'not specified',
+                gender=(data.get('gender') or 'other')[:10],
                 weight_kg=float(data['weight_kg']) if data.get('weight_kg') else None,
                 height_cm=float(data['height_cm']) if data.get('height_cm') else None,
                 prakriti=data.get('prakriti', 'Not Known') or 'Not Known',
