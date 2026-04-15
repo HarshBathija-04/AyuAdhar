@@ -71,6 +71,7 @@ export interface DietPlan {
       carbs: number;
       fats: number;
       fiber: number;
+      target_calories?: number;
     };
     ayurvedic_balance: {
       vata: number;
