@@ -49,6 +49,13 @@ export default function Register() {
       return;
     }
 
+    if (role === 'patient') {
+      if (!age || !gender || !weightKg || !heightCm) {
+        setLocalError('Please complete all required wellness profile fields');
+        return;
+      }
+    }
+
     try {
       await register({ name, email, password, role, age, gender, prakriti, condition, weight_kg: weightKg ? parseFloat(weightKg) : undefined, height_cm: heightCm ? parseFloat(heightCm) : undefined });
       navigate('/dashboard');
