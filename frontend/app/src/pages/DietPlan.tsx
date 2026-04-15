@@ -408,64 +408,68 @@ export default function DietPlan() {
           </div>
 
           {/* Dataset Recommendations */}
-          {dietPlan.plan_data?.dataset_recommendations && Object.keys(dietPlan.plan_data.dataset_recommendations).some(k => !!dietPlan.plan_data.dataset_recommendations![k as keyof typeof dietPlan.plan_data.dataset_recommendations]) && (
-            <Card className="border-amber-200 bg-amber-50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
-                  <BookOpen className="h-5 w-5" />
-                  Ayurvedic Protocol (from Dataset)
-                  {dietPlan.plan_data.dataset_recommendations.disease_match && (
-                    <Badge className="bg-amber-200 text-amber-900 ml-2">
-                      {dietPlan.plan_data.dataset_recommendations.disease_match}
-                    </Badge>
-                  )}
-                </CardTitle>
-                <CardDescription className="text-amber-700">
-                  Evidence-based recommendations matched from the Ayurvedic clinical dataset
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {dietPlan.plan_data.dataset_recommendations.diet_advice && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.diet_advice}</p>
-                    </div>
-                  )}
-                  {dietPlan.plan_data.dataset_recommendations.ayurvedic_herbs && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.ayurvedic_herbs}</p>
-                    </div>
-                  )}
-                  {dietPlan.plan_data.dataset_recommendations.formulation && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Formulation</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.formulation}</p>
-                    </div>
-                  )}
-                  {dietPlan.plan_data.dataset_recommendations.yoga_therapy && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.yoga_therapy}</p>
-                    </div>
-                  )}
-                  {dietPlan.plan_data.dataset_recommendations.prevention && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Prevention</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.prevention}</p>
-                    </div>
-                  )}
-                  {dietPlan.plan_data.dataset_recommendations.patient_recommendations && (
-                    <div className="p-3 bg-white rounded-lg border border-amber-200">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Patient Tips</p>
-                      <p className="text-sm text-gray-700">{dietPlan.plan_data.dataset_recommendations.patient_recommendations}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {(() => {
+            const recs = dietPlan.plan_data?.dataset_recommendations;
+            if (!recs || !Object.values(recs).some(v => !!v)) return null;
+            return (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+                    <BookOpen className="h-5 w-5" />
+                    Ayurvedic Protocol (from Dataset)
+                    {recs.disease_match && (
+                      <Badge className="bg-amber-200 text-amber-900 ml-2">
+                        {recs.disease_match}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-amber-700">
+                    Evidence-based recommendations matched from the Ayurvedic clinical dataset
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {recs.diet_advice && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
+                        <p className="text-sm text-gray-700">{recs.diet_advice}</p>
+                      </div>
+                    )}
+                    {recs.ayurvedic_herbs && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
+                        <p className="text-sm text-gray-700">{recs.ayurvedic_herbs}</p>
+                      </div>
+                    )}
+                    {recs.formulation && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Formulation</p>
+                        <p className="text-sm text-gray-700">{recs.formulation}</p>
+                      </div>
+                    )}
+                    {recs.yoga_therapy && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
+                        <p className="text-sm text-gray-700">{recs.yoga_therapy}</p>
+                      </div>
+                    )}
+                    {recs.prevention && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Prevention</p>
+                        <p className="text-sm text-gray-700">{recs.prevention}</p>
+                      </div>
+                    )}
+                    {recs.patient_recommendations && (
+                      <div className="p-3 bg-white rounded-lg border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Patient Tips</p>
+                        <p className="text-sm text-gray-700">{recs.patient_recommendations}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Food Items */}
           {dietPlan.foods && dietPlan.foods.length > 0 && (

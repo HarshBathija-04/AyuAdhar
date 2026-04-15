@@ -51,6 +51,7 @@ export interface FoodItem {
 export interface MealPlan {
   foods: { name: string; calories: number; quantity: string }[];
   total_calories: number;
+  target_calories?: number;
   recommendations: string;
 }
 
