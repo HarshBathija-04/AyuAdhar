@@ -9,18 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ArrowLeft, 
-  Utensils, 
-  Download, 
-  RefreshCw, 
+import {
+  ArrowLeft,
+  Utensils,
+  Download,
+  RefreshCw,
   Loader2,
   Leaf,
   Flame,
   Droplets,
   Wind,
   Scale,
-  BookOpen
+  BookOpen,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageSkeleton from '@/components/PageSkeleton';
@@ -35,14 +35,7 @@ import {
 } from 'chart.js';
 import { Radar } from 'react-chartjs-2';
 
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-);
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 export default function DietPlan() {
   const { id } = useParams<{ id: string }>();
@@ -61,15 +54,14 @@ export default function DietPlan() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch patient
       const patientResponse = await api.getPatient(Number(id));
       setPatient(patientResponse.patient);
-      
+
       // Fetch diet plan
       const dietPlanResponse = await api.getPatientDietPlan(Number(id));
       setDietPlan(dietPlanResponse.diet_plan);
-      
     } catch (error) {
       toast.error(getErrorMessage(error, "Couldn't load this diet plan."));
     } finally {
@@ -92,10 +84,10 @@ export default function DietPlan() {
 
   const downloadReport = async () => {
     if (!dietPlan) return;
-    
+
     try {
       const response = await api.getDietReport(dietPlan.id);
-      
+
       // Create and download JSON report
       const reportData = JSON.stringify(response.report, null, 2);
       const blob = new Blob([reportData], { type: 'application/json' });
@@ -107,32 +99,33 @@ export default function DietPlan() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      toast.success('Report downloaded successfully');
+
+      toast.success('Report downloaded as JSON');
     } catch (error) {
       toast.error(getErrorMessage(error, "Couldn't download the report."));
     }
   };
 
   // Ayurvedic balance chart data
-  const ayurvedicChartData = dietPlan ? {
-    labels: ['Vata', 'Pitta', 'Kapha'],
-    datasets: [
-      {
-        label: 'Dosha Balance',
-        data: [
-          Math.abs(dietPlan.vata_score) + 5,
-          Math.abs(dietPlan.pitta_score) + 5,
-          Math.abs(dietPlan.kapha_score) + 5,
+  const ayurvedicChartData = dietPlan
+    ? {
+        labels: ['Vata', 'Pitta', 'Kapha'],
+        datasets: [
+          {
+            label: 'Dosha Balance',
+            data: [
+              Math.abs(dietPlan.vata_score) + 5,
+              Math.abs(dietPlan.pitta_score) + 5,
+              Math.abs(dietPlan.kapha_score) + 5,
+            ],
+            backgroundColor: 'rgba(27, 67, 50, 0.15)',
+            borderColor: '#1b4332',
+            borderWidth: 2,
+            pointBackgroundColor: '#1b4332',
+          },
         ],
-        backgroundColor: 'rgba(27, 67, 50, 0.15)',
-        borderColor: '#1b4332',
-        borderWidth: 2,
-        pointBackgroundColor: '#1b4332',
-      },
-    ],
-  } : null;
-
+      }
+    : null;
 
   if (isLoading) {
     return <PageSkeleton />;
@@ -143,17 +136,20 @@ export default function DietPlan() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate('/patients')} aria-label="Back to patients">
-            <ArrowLeft className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(`/patients/${id}`)}
+            aria-label={`Back to ${patient?.name ?? 'patient'}`}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
-              Diet Plan - {patient?.name}
+              {patient?.name ? `${patient.name}'s diet plan` : 'Diet plan'}
             </h1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className={prakritiBadge(patient?.prakriti || '')}>
-                {patient?.prakriti}
-              </Badge>
+              <Badge className={prakritiBadge(patient?.prakriti || '')}>{patient?.prakriti}</Badge>
               {dietPlan && (
                 <span className="text-sm text-ink-500">
                   Generated on {new Date(dietPlan.created_at).toLocaleDateString()}
@@ -162,22 +158,22 @@ export default function DietPlan() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={generatePlan} disabled={isGenerating}>
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-2 h-4 w-4" />
-            )}
-            Regenerate
-          </Button>
-          {dietPlan && (
-            <Button onClick={downloadReport} className="bg-forest-900 hover:bg-forest-800">
-              <Download className="mr-2 h-4 w-4" />
-              Download Report
+        {dietPlan && (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={generatePlan} disabled={isGenerating}>
+              {isGenerating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+              )}
+              {isGenerating ? 'Generating...' : 'Regenerate'}
             </Button>
-          )}
-        </div>
+            <Button onClick={downloadReport} className="bg-forest-900 hover:bg-forest-800">
+              <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+              Download report
+            </Button>
+          </div>
+        )}
       </div>
 
       {dietPlan ? (
@@ -185,64 +181,65 @@ export default function DietPlan() {
           {/* BMI + Nutritional Summary */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {/* BMI Card */}
-            {dietPlan.plan_data?.bmi_info && (() => {
-              const bmi = dietPlan.plan_data.bmi_info;
-              const catColor =
-                bmi.category === 'Underweight' ? 'text-blue-600' :
-                bmi.category === 'Normal'      ? 'text-forest-900' :
-                bmi.category === 'Overweight'  ? 'text-saffron-600' :
-                'text-danger';
-              const bgColor =
-                bmi.category === 'Underweight' ? 'bg-blue-50' :
-                bmi.category === 'Normal'      ? 'bg-forest-200/20' :
-                bmi.category === 'Overweight'  ? 'bg-saffron-200/20' :
-                'bg-danger-soft/40';
-              return (
-                <Card className={`col-span-2 md:col-span-1 ${bgColor} border-0`}>
-                  <CardContent className="pt-6 text-center">
-                    <Scale className={`mx-auto h-5 w-5 mb-1 ${catColor}`} />
-                    <div className={`text-3xl font-bold ${catColor}`}>{bmi.bmi}</div>
-                    <p className="text-sm font-medium text-ink-700">BMI</p>
-                    <p className={`text-xs font-semibold mt-1 ${catColor}`}>{bmi.category}</p>
-                    <p className="text-xs text-ink-500 mt-1">
-                      {bmi.weight_kg} kg · {bmi.height_cm} cm
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })()}
+            {dietPlan.plan_data?.bmi_info &&
+              (() => {
+                const bmi = dietPlan.plan_data.bmi_info;
+                const catColor =
+                  bmi.category === 'Underweight'
+                    ? 'text-blue-600'
+                    : bmi.category === 'Normal'
+                      ? 'text-forest-900'
+                      : bmi.category === 'Overweight'
+                        ? 'text-saffron-600'
+                        : 'text-danger';
+                const bgColor =
+                  bmi.category === 'Underweight'
+                    ? 'bg-blue-50'
+                    : bmi.category === 'Normal'
+                      ? 'bg-forest-200/20'
+                      : bmi.category === 'Overweight'
+                        ? 'bg-saffron-200/20'
+                        : 'bg-danger-soft/40';
+                return (
+                  <Card className={`col-span-2 md:col-span-1 ${bgColor} border-0`}>
+                    <CardContent className="pt-6 text-center">
+                      <Scale className={`mx-auto h-5 w-5 mb-1 ${catColor}`} />
+                      <div className={`text-3xl font-bold ${catColor}`}>{bmi.bmi}</div>
+                      <p className="text-sm font-medium text-ink-700">BMI</p>
+                      <p className={`text-xs font-semibold mt-1 ${catColor}`}>{bmi.category}</p>
+                      <p className="text-xs text-ink-500 mt-1">
+                        {bmi.weight_kg} kg · {bmi.height_cm} cm
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             <Card>
               <CardContent className="pt-6 text-center">
                 <div className="text-3xl font-bold text-forest-900">
-                  {Math.round(dietPlan.plan_data?.total_nutrition?.target_calories ?? dietPlan.total_calories)}
+                  {Math.round(
+                    dietPlan.plan_data?.total_nutrition?.target_calories ?? dietPlan.total_calories,
+                  )}
                 </div>
                 <p className="text-sm text-ink-700">Target Cal</p>
-                <p className="text-xs text-ink-500">
-                  got {Math.round(dietPlan.total_calories)}
-                </p>
+                <p className="text-xs text-ink-500">got {Math.round(dietPlan.total_calories)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold text-blue-600">
-                  {Math.round(dietPlan.total_protein)}g
-                </div>
+                <div className="text-3xl font-bold text-blue-600">{Math.round(dietPlan.total_protein)}g</div>
                 <p className="text-sm text-ink-700">Protein</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold text-saffron-600">
-                  {Math.round(dietPlan.total_carbs)}g
-                </div>
+                <div className="text-3xl font-bold text-saffron-600">{Math.round(dietPlan.total_carbs)}g</div>
                 <p className="text-sm text-ink-700">Carbs</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold text-purple-600">
-                  {Math.round(dietPlan.total_fats)}g
-                </div>
+                <div className="text-3xl font-bold text-purple-600">{Math.round(dietPlan.total_fats)}g</div>
                 <p className="text-sm text-ink-700">Fats</p>
               </CardContent>
             </Card>
@@ -261,7 +258,7 @@ export default function DietPlan() {
               <CardContent className="space-y-4">
                 {ayurvedicChartData && (
                   <div className="h-48">
-                    <Radar 
+                    <Radar
                       data={ayurvedicChartData}
                       options={{
                         responsive: true,
@@ -284,7 +281,7 @@ export default function DietPlan() {
                     />
                   </div>
                 )}
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-2 bg-forest-200/20 rounded">
                     <div className="flex items-center gap-2">
@@ -319,9 +316,7 @@ export default function DietPlan() {
 
                 {dietPlan.plan_data?.prakriti_guidelines && (
                   <div className="p-3 bg-forest-200/20 rounded-lg">
-                    <p className="text-sm text-forest-950">
-                      {dietPlan.plan_data.prakriti_guidelines}
-                    </p>
+                    <p className="text-sm text-forest-950">{dietPlan.plan_data.prakriti_guidelines}</p>
                   </div>
                 )}
               </CardContent>
@@ -344,7 +339,7 @@ export default function DietPlan() {
                       <TabsTrigger value="dinner">Dinner</TabsTrigger>
                       <TabsTrigger value="snacks">Snacks</TabsTrigger>
                     </TabsList>
-                    
+
                     {Object.entries(dietPlan.plan_data.meal_plan).map(([meal, data]) => (
                       <TabsContent key={meal} value={meal}>
                         <div className="space-y-4">
@@ -354,31 +349,33 @@ export default function DietPlan() {
                               {Math.round(data.total_calories)} cal
                             </Badge>
                           </div>
-                          
+
                           {data.recommendations && (
                             <p className="text-sm text-ink-700 bg-sand-100 p-2 rounded">
                               {data.recommendations}
                             </p>
                           )}
-                          
+
                           <div className="space-y-2">
-                            {data.foods.map((food: { name: string; calories: number; quantity: string }, idx: number) => (
-                              <div 
-                                key={idx} 
-                                className="flex items-center justify-between p-3 bg-sand-100 rounded-lg"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-forest-200/50 flex items-center justify-center">
-                                    <Utensils className="h-4 w-4 text-forest-900" />
+                            {data.foods.map(
+                              (food: { name: string; calories: number; quantity: string }, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between p-3 bg-sand-100 rounded-lg"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-forest-200/50 flex items-center justify-center">
+                                      <Utensils className="h-4 w-4 text-forest-900" />
+                                    </div>
+                                    <span className="font-medium">{food.name}</span>
                                   </div>
-                                  <span className="font-medium">{food.name}</span>
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium">{food.quantity}</p>
+                                    <p className="text-xs text-ink-500">{Math.round(food.calories)} cal</p>
+                                  </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-medium">{food.quantity}</p>
-                                  <p className="text-xs text-ink-500">{Math.round(food.calories)} cal</p>
-                                </div>
-                              </div>
-                            ))}
+                              ),
+                            )}
                           </div>
                         </div>
                       </TabsContent>
@@ -394,7 +391,7 @@ export default function DietPlan() {
           {/* Dataset Recommendations */}
           {(() => {
             const recs = dietPlan.plan_data?.dataset_recommendations;
-            if (!recs || !Object.values(recs).some(v => !!v)) return null;
+            if (!recs || !Object.values(recs).some((v) => !!v)) return null;
             return (
               <Card className="border-saffron-200 bg-saffron-200/20">
                 <CardHeader>
@@ -402,9 +399,7 @@ export default function DietPlan() {
                     <BookOpen className="h-5 w-5" />
                     Ayurvedic Protocol (from Dataset)
                     {recs.disease_match && (
-                      <Badge className="bg-saffron-200 text-saffron-700 ml-2">
-                        {recs.disease_match}
-                      </Badge>
+                      <Badge className="bg-saffron-200 text-saffron-700 ml-2">{recs.disease_match}</Badge>
                     )}
                   </CardTitle>
                   <CardDescription className="text-saffron-700">
@@ -415,37 +410,49 @@ export default function DietPlan() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {recs.diet_advice && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Diet &amp; Lifestyle
+                        </p>
                         <p className="text-sm text-ink-700">{recs.diet_advice}</p>
                       </div>
                     )}
                     {recs.ayurvedic_herbs && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Ayurvedic Herbs
+                        </p>
                         <p className="text-sm text-ink-700">{recs.ayurvedic_herbs}</p>
                       </div>
                     )}
                     {recs.formulation && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Formulation</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Formulation
+                        </p>
                         <p className="text-sm text-ink-700">{recs.formulation}</p>
                       </div>
                     )}
                     {recs.yoga_therapy && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Yoga &amp; Therapy
+                        </p>
                         <p className="text-sm text-ink-700">{recs.yoga_therapy}</p>
                       </div>
                     )}
                     {recs.prevention && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Prevention</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Prevention
+                        </p>
                         <p className="text-sm text-ink-700">{recs.prevention}</p>
                       </div>
                     )}
                     {recs.patient_recommendations && (
                       <div className="p-3 bg-white rounded-lg border border-saffron-200">
-                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Patient Tips</p>
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">
+                          Patient Tips
+                        </p>
                         <p className="text-sm text-ink-700">{recs.patient_recommendations}</p>
                       </div>
                     )}
@@ -471,7 +478,10 @@ export default function DietPlan() {
                         <Badge variant="outline">{food.category}</Badge>
                       </div>
                       <div className="text-sm text-ink-700 space-y-1">
-                        <p>{Math.round(food.calories)} cal | P: {food.protein}g | C: {food.carbs}g | F: {food.fats}g</p>
+                        <p>
+                          {Math.round(food.calories)} cal | P: {food.protein}g | C: {food.carbs}g | F:{' '}
+                          {food.fats}g
+                        </p>
                         <p className="text-xs">
                           Rasa: {food.rasa} | Virya: {food.virya}
                         </p>
@@ -486,22 +496,23 @@ export default function DietPlan() {
       ) : (
         <Card>
           <CardContent className="text-center py-12">
-            <Utensils className="mx-auto h-12 w-12 text-ink-300" />
-            <h3 className="mt-4 text-lg font-medium text-ink">No Diet Plan</h3>
+            <Utensils className="mx-auto h-12 w-12 text-ink-300" aria-hidden="true" />
+            <h2 className="mt-4 text-lg font-semibold text-ink">No diet plan yet</h2>
             <p className="mt-1 text-ink-500">
-              Generate a personalized Ayurvedic diet plan for {patient?.name}
+              Create a day of meals balanced for {patient?.name ?? 'this patient'}'s prakriti, measurements
+              and conditions. It takes a few seconds.
             </p>
-            <Button 
-              onClick={generatePlan} 
+            <Button
+              onClick={generatePlan}
               className="mt-4 bg-forest-900 hover:bg-forest-800"
               disabled={isGenerating}
             >
               {isGenerating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <Utensils className="mr-2 h-4 w-4" />
+                <Utensils className="mr-2 h-4 w-4" aria-hidden="true" />
               )}
-              Generate Diet Plan
+              {isGenerating ? 'Generating...' : 'Generate diet plan'}
             </Button>
           </CardContent>
         </Card>

@@ -174,21 +174,21 @@ export default function PatientDetail() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate(`/patients/${id}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Edit className="mr-2 h-4 w-4" aria-hidden="true" />
             Edit
           </Button>
           <Button onClick={() => navigate(`/patients/${id}/diet-plan`)} className="bg-forest-900 hover:bg-forest-800">
-            <Utensils className="mr-2 h-4 w-4" />
-            Diet Plan
+            <Utensils className="mr-2 h-4 w-4" aria-hidden="true" />
+            Diet plan
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto [&>button]:px-1.5 [&>button]:text-xs sm:[&>button]:px-3 sm:[&>button]:text-sm">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="diet-plan">Diet Plan</TabsTrigger>
+          <TabsTrigger value="diet-plan">Diet plan</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="progress">Progress</TabsTrigger>
         </TabsList>
@@ -347,14 +347,14 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Utensils className="mx-auto h-12 w-12 text-ink-300" />
-                  <h3 className="mt-4 text-lg font-medium text-ink">No Diet Plan</h3>
+                  <Utensils className="mx-auto h-12 w-12 text-ink-300" aria-hidden="true" />
+                  <h3 className="mt-4 text-lg font-semibold text-ink">No diet plan yet</h3>
                   <p className="mt-1 text-ink-500">
                     Generate a personalized Ayurvedic diet plan for this patient
                   </p>
                   <Button onClick={generateDietPlan} className="mt-4 bg-forest-900 hover:bg-forest-800">
                     <Utensils className="mr-2 h-4 w-4" />
-                    Generate Diet Plan
+                    Generate diet plan
                   </Button>
                 </div>
               )}
@@ -401,8 +401,9 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Calendar className="mx-auto h-12 w-12 text-ink-300" />
-                  <p className="mt-2 text-ink-500">No appointments scheduled</p>
+                  <Calendar className="mx-auto h-12 w-12 text-ink-300" aria-hidden="true" />
+                  <p className="mt-2 font-medium text-ink-700">No appointments yet</p>
+                  <p className="mt-1 text-sm text-ink-500">Consultations you schedule for this patient will show up here.</p>
                 </div>
               )}
             </CardContent>
@@ -551,8 +552,9 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Activity className="mx-auto h-12 w-12 text-ink-300" />
-                  <p className="mt-2 text-ink-500">No progress logs yet</p>
+                  <Activity className="mx-auto h-12 w-12 text-ink-300" aria-hidden="true" />
+                  <p className="mt-2 font-medium text-ink-700">No check-ins yet</p>
+                  <p className="mt-1 text-sm text-ink-500">Log a weekly adherence score to start the trend chart.</p>
                 </div>
               )}
             </CardContent>
