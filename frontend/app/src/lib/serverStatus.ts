@@ -1,7 +1,7 @@
 // Tracks API requests that take long enough to suggest a cold-starting backend (Render free tier sleeps).
 type Listener = (waking: boolean) => void;
 
-export const SLOW_REQUEST_MS = 4000;
+const SLOW_REQUEST_MS = 4000;
 
 let slowRequests = 0;
 const listeners = new Set<Listener>();
