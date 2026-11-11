@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '@/services/api';
+import { statusBadge } from '@/lib/utils';
 import type { Appointment, Patient, CalendarEvent } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -99,8 +100,7 @@ export default function Appointments() {
       }
       
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load appointments');
+      toast.error(getErrorMessage(error, "Couldn't load appointments."));
     } finally {
       setIsLoading(false);
     }
@@ -156,8 +156,7 @@ export default function Appointments() {
       resetForm();
       fetchData();
     } catch (error) {
-      console.error('Error creating appointment:', error);
-      toast.error('Failed to schedule appointment');
+      toast.error(getErrorMessage(error, "Couldn't schedule the appointment."));
     }
   };
 
@@ -178,8 +177,7 @@ export default function Appointments() {
       toast.success(`Appointment ${status}`);
       fetchData();
     } catch (error) {
-      console.error('Error updating appointment:', error);
-      toast.error('Failed to update appointment');
+      toast.error(getErrorMessage(error, "Couldn't update the appointment."));
     }
   };
 
@@ -213,11 +211,11 @@ export default function Appointments() {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-ink">Appointments</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Appointments</h1>
           <p className="text-ink-700">Manage your consultation schedule</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} className="bg-forest-900 hover:bg-forest-800">
@@ -239,7 +237,7 @@ export default function Appointments() {
             >
               Previous
             </Button>
-            <span className="font-medium min-w-[120px] text-center">
+            <span className="font-medium min-w-[120px] text-center" aria-live="polite">
               {format(currentDate, 'MMMM yyyy')}
             </span>
             <Button 
@@ -264,36 +262,30 @@ export default function Appointments() {
               const isToday = isSameDay(day, new Date());
               
               return (
-                <div
+                <button
+                  type="button"
                   key={day.toISOString()}
-                  className={`
-                    min-h-[80px] p-2 border rounded-lg cursor-pointer hover:bg-sand-100 transition-colors
-                    ${isToday ? 'bg-forest-200/20 border-forest-300' : 'bg-white'}
-                  `}
+                  aria-label={`Schedule on ${format(day, 'EEEE d MMMM')}${events.length ? `, ${events.length} booked` : ''}`}
+                  className={`min-h-[64px] sm:min-h-[80px] p-1.5 sm:p-2 border rounded-lg text-left align-top hover:bg-sand-100 transition-colors ${isToday ? 'bg-forest-200/20 border-forest-300' : 'bg-white'}`}
                   onClick={() => handleDateClick(day)}
                 >
-                  <div className={`text-sm font-medium ${isToday ? 'text-forest-800' : ''}`}>
+                  <span className={`block text-sm font-medium ${isToday ? 'text-forest-800' : ''}`}>
                     {format(day, 'd')}
-                  </div>
-                  <div className="space-y-1 mt-1">
+                  </span>
+                  <span className="block space-y-1 mt-1">
                     {events.slice(0, 2).map((event, idx) => (
-                      <div
+                      <span
                         key={idx}
-                        className={`
-                          text-xs px-1 py-0.5 rounded truncate
-                          ${event.status === 'pending' ? 'bg-saffron-200/50 text-saffron-700' : ''}
-                          ${event.status === 'completed' ? 'bg-forest-200/50 text-forest-950' : ''}
-                          ${event.status === 'cancelled' ? 'bg-danger-soft text-danger' : ''}
-                        `}
+                        className={`block text-xs px-1 py-0.5 rounded truncate ${statusBadge(event.status)}`}
                       >
                         {event.time} {event.patient_name}
-                      </div>
+                      </span>
                     ))}
                     {events.length > 2 && (
-                      <div className="text-xs text-ink-500">+{events.length - 2} more</div>
+                      <span className="block text-xs text-ink-500">+{events.length - 2} more</span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </button>
               );
             })}
           </div>

@@ -3,6 +3,7 @@ import { prakritiBadge } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { Patient, DietPlan as DietPlanType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -70,8 +71,7 @@ export default function DietPlan() {
       setDietPlan(dietPlanResponse.diet_plan);
       
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load diet plan');
+      toast.error(getErrorMessage(error, "Couldn't load this diet plan."));
     } finally {
       setIsLoading(false);
     }
@@ -84,8 +84,7 @@ export default function DietPlan() {
       setDietPlan(response.diet_plan);
       toast.success('Diet plan generated successfully');
     } catch (error) {
-      console.error('Error generating diet plan:', error);
-      toast.error('Failed to generate diet plan');
+      toast.error(getErrorMessage(error, "Couldn't generate a diet plan."));
     } finally {
       setIsGenerating(false);
     }
@@ -111,8 +110,7 @@ export default function DietPlan() {
       
       toast.success('Report downloaded successfully');
     } catch (error) {
-      console.error('Error downloading report:', error);
-      toast.error('Failed to download report');
+      toast.error(getErrorMessage(error, "Couldn't download the report."));
     }
   };
 
@@ -141,7 +139,7 @@ export default function DietPlan() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -149,7 +147,7 @@ export default function DietPlan() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-ink">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
               Diet Plan - {patient?.name}
             </h1>
             <div className="flex items-center gap-2 mt-1">

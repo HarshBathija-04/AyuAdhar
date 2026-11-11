@@ -1,8 +1,9 @@
 // AyuAahar - Patients List Page
 import { prakritiBadge } from '@/lib/utils';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { Patient } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,8 +76,7 @@ export default function Patients() {
       setPatients(response.patients);
       setFilteredPatients(response.patients);
     } catch (error) {
-      console.error('Error fetching patients:', error);
-      toast.error('Failed to load patients');
+      toast.error(getErrorMessage(error, "Couldn't load your patients."));
     } finally {
       setIsLoading(false);
     }
@@ -95,8 +95,7 @@ export default function Patients() {
       toast.success('Patient deleted successfully');
       fetchPatients();
     } catch (error) {
-      console.error('Error deleting patient:', error);
-      toast.error('Failed to delete patient');
+      toast.error(getErrorMessage(error, "Couldn't delete this patient."));
     } finally {
       setDeleteDialogOpen(false);
       setPatientToDelete(null);
@@ -109,16 +108,16 @@ export default function Patients() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-ink">Patients</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Patients</h1>
           <p className="text-ink-700">Manage your patient records</p>
         </div>
         <Button onClick={() => navigate('/patients/new')} className="bg-forest-900 hover:bg-forest-800">
           <Plus className="mr-2 h-4 w-4" />
-          Add Patient
+          Add patient
         </Button>
       </div>
 
@@ -129,7 +128,7 @@ export default function Patients() {
             <Search className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
             <Input
               aria-label="Search patients"
-              placeholder="Search patients by name or prakriti..."
+              placeholder="Search by name or prakriti"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -160,13 +159,15 @@ export default function Patients() {
               </TableHeader>
               <TableBody>
                 {filteredPatients.map((patient) => (
-                  <TableRow key={patient.id} className="cursor-pointer hover:bg-sand-100">
+                  <TableRow key={patient.id} className="hover:bg-sand-100">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-forest-200/50 flex items-center justify-center">
-                          <User className="h-4 w-4 text-forest-900" />
+                          <User className="h-4 w-4 text-forest-900" aria-hidden="true" />
                         </div>
-                        <span className="font-medium">{patient.name}</span>
+                        <Link to={`/patients/${patient.id}`} className="font-medium text-ink underline-offset-4 hover:text-forest-900 hover:underline">
+                          {patient.name}
+                        </Link>
                       </div>
                     </TableCell>
                     <TableCell>{patient.age}</TableCell>
@@ -189,7 +190,7 @@ export default function Patients() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}`)}>
                             <FileText className="mr-2 h-4 w-4" />
-                            View Details
+                            View details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}/edit`)}>
                             <Edit className="mr-2 h-4 w-4" />
@@ -197,7 +198,7 @@ export default function Patients() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}/diet-plan`)}>
                             <Utensils className="mr-2 h-4 w-4" />
-                            Diet Plan
+                            Diet plan
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(patient)}
@@ -215,10 +216,10 @@ export default function Patients() {
             </Table>
           ) : (
             <div className="text-center py-12">
-              <User className="mx-auto h-12 w-12 text-ink-300" />
-              <h3 className="mt-4 text-lg font-medium text-ink">No patients found</h3>
+              <User className="mx-auto h-12 w-12 text-ink-300" aria-hidden="true" />
+              <h2 className="mt-4 text-lg font-semibold text-ink">{searchQuery ? 'No matching patients' : 'No patients yet'}</h2>
               <p className="mt-1 text-ink-500">
-                {searchQuery ? 'Try adjusting your search' : 'Get started by adding a new patient'}
+                {searchQuery ? `Nothing matches "${searchQuery}". Check the spelling or try a prakriti like Vata.` : 'Add your first patient to generate a prakriti-based diet plan.'}
               </p>
               {!searchQuery && (
                 <Button 
@@ -226,7 +227,7 @@ export default function Patients() {
                   className="mt-4 bg-forest-900 hover:bg-forest-800"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Patient
+                  Add patient
                 </Button>
               )}
             </div>
@@ -238,9 +239,9 @@ export default function Patients() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Patient</DialogTitle>
+            <DialogTitle>Delete {patientToDelete?.name}?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {patientToDelete?.name}? This action cannot be undone.
+              This permanently removes {patientToDelete?.name} along with their diet plans, appointments and progress logs. This can't be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -248,7 +249,7 @@ export default function Patients() {
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              Delete patient
             </Button>
           </DialogFooter>
         </DialogContent>

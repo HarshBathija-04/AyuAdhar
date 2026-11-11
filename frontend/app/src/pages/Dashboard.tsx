@@ -1,8 +1,8 @@
-import { prakritiBadge, prakritiChart } from '@/lib/utils';
+import { prakritiBadge, prakritiChart, statusBadge } from '@/lib/utils';
 import PageSkeleton from '@/components/PageSkeleton';
-// AyuAahar - Dietitian Dashboard (Stitch Digital Sanctuary Design)
+// AyuAahar - Dietitian dashboard (patients see PatientDashboard)
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import type { DashboardStats, Patient, Appointment } from '@/types';
@@ -20,7 +20,6 @@ import {
   PieChart,
   Clock,
   UserPlus,
-  ArrowUpRight,
   FileText
 } from 'lucide-react';
 import {
@@ -135,13 +134,13 @@ export default function Dashboard() {
 
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto relative">
+    <div className="relative mx-auto max-w-[1400px] space-y-8 px-4 py-6 sm:px-6 lg:px-10">
       {/* Background decorations */}
       <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-forest-900/[0.03] rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[20%] left-0 -z-10 w-[400px] h-[400px] bg-saffron-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-2">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-gradient-to-br from-forest-950 to-forest-900 p-2 rounded-xl">
@@ -149,99 +148,45 @@ export default function Dashboard() {
             </div>
             <span className="text-sm font-bold text-forest-900 uppercase tracking-wider">Practice Overview</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">Welcome back, {user?.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Welcome back, {user?.name}</h1>
           <p className="text-ink-500 mt-2 text-base">Here's what's happening in your practice today</p>
         </div>
-        <div className="hidden md:flex items-center gap-3">
+        <div className="shrink-0">
           <Button 
             onClick={() => navigate('/patients/new')} 
             className="bg-gradient-to-r from-forest-950 to-forest-900 hover:from-forest-950 hover:to-forest-800 text-white rounded-full px-6 shadow-lg shadow-forest-900/20 font-medium"
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Patient
+            Add patient
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Patients */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl hover:shadow-[0_16px_50px_rgba(28,28,26,0.07)] transition-all duration-500 group hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-forest-200/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Users className="h-5 w-5 text-forest-900" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {[
+          { label: 'Total patients', value: stats?.total_patients ?? 0, icon: Users, tone: 'bg-forest-200/40 text-forest-900', note: `+${stats?.recent_patients ?? 0} in the last 30 days` },
+          { label: 'Appointments', value: stats?.total_appointments ?? 0, icon: Calendar, tone: 'bg-blue-100/60 text-blue-700', note: `${stats?.upcoming_this_week ?? 0} pending in the next 7 days` },
+          { label: 'Active diet plans', value: stats?.active_diet_plans ?? 0, icon: Utensils, tone: 'bg-saffron-200/50 text-saffron-700', note: 'One current plan per patient' },
+          { label: 'Average adherence', value: stats?.average_adherence != null ? `${stats.average_adherence}%` : '–', icon: TrendingUp, tone: 'bg-violet-100/60 text-violet-700', note: 'Across all weekly check-ins' },
+        ].map(({ label, value, icon: Icon, tone, note }) => (
+          <Card key={label} className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
+            <CardContent className="p-6">
+              <div className={`w-12 h-12 mb-4 rounded-2xl flex items-center justify-center ${tone}`}>
+                <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
-              <ArrowUpRight className="h-4 w-4 text-forest-700" />
-            </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.total_patients || 0}</div>
-            <p className="text-sm text-ink-500 mt-1 font-medium">Total Patients</p>
-            <div className="mt-3 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-forest-900 bg-forest-200/30 px-2 py-0.5 rounded-full">+{stats?.recent_patients || 0}</span>
-              <span className="text-xs text-ink-500">this month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Appointments */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl hover:shadow-[0_16px_50px_rgba(28,28,26,0.07)] transition-all duration-500 group hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="h-5 w-5 text-blue-700" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-blue-700" />
-            </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.total_appointments || 0}</div>
-            <p className="text-sm text-ink-500 mt-1 font-medium">Appointments</p>
-            <div className="mt-3 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-blue-700 bg-blue-100/50 px-2 py-0.5 rounded-full">{stats?.upcoming_this_week || 0}</span>
-              <span className="text-xs text-ink-500">this week</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Active Diet Plans */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl hover:shadow-[0_16px_50px_rgba(28,28,26,0.07)] transition-all duration-500 group hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-saffron-200/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Utensils className="h-5 w-5 text-saffron-600" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-saffron-600" />
-            </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.active_diet_plans ?? 0}</div>
-            <p className="text-sm text-ink-500 mt-1 font-medium">Active Diet Plans</p>
-            <div className="mt-3 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-saffron-600 bg-saffron-200/50 px-2 py-0.5 rounded-full">Active</span>
-              <span className="text-xs text-ink-500">personalized plans</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Success Rate */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl hover:shadow-[0_16px_50px_rgba(28,28,26,0.07)] transition-all duration-500 group hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-violet-100/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp className="h-5 w-5 text-violet-700" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-violet-700" />
-            </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.average_adherence != null ? `${stats.average_adherence}%` : '–'}</div>
-            <p className="text-sm text-ink-500 mt-1 font-medium">Average Adherence</p>
-            <div className="mt-3 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-violet-700 bg-violet-100/50 px-2 py-0.5 rounded-full">Weekly</span>
-              <span className="text-xs text-ink-500">across logged check-ins</span>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-3xl font-extrabold text-ink tracking-tight tabular-nums">{value}</p>
+              <p className="text-sm text-ink-700 mt-1 font-semibold">{label}</p>
+              <p className="mt-2 text-xs text-ink-500">{note}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Prakriti Distribution */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-8 h-8 rounded-xl bg-forest-200/30 flex items-center justify-center">
@@ -285,8 +230,8 @@ export default function Dashboard() {
                   <div className="w-16 h-16 rounded-2xl bg-sand-100 flex items-center justify-center mx-auto mb-3">
                     <PieChart className="h-7 w-7 text-ink-300" />
                   </div>
-                  <p className="text-ink-500 font-medium">No prakriti data available</p>
-                  <p className="text-ink-300 text-sm mt-1">Add patients to see distribution</p>
+                  <p className="text-ink-700 font-medium">No patients yet</p>
+                  <p className="text-ink-500 text-sm mt-1">Their prakriti mix will appear here.</p>
                 </div>
               )}
             </div>
@@ -294,7 +239,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Appointment Status */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-8 h-8 rounded-xl bg-saffron-200/30 flex items-center justify-center">
@@ -347,8 +292,8 @@ export default function Dashboard() {
                     <div className="w-16 h-16 rounded-2xl bg-sand-100 flex items-center justify-center mx-auto mb-3">
                       <Calendar className="h-7 w-7 text-ink-300" />
                     </div>
-                    <p className="text-ink-500 font-medium">No appointment data</p>
-                    <p className="text-ink-300 text-sm mt-1">Schedule appointments to see stats</p>
+                    <p className="text-ink-700 font-medium">No appointments yet</p>
+                    <p className="text-ink-500 text-sm mt-1">Pending, completed and cancelled counts will appear here.</p>
                   </div>
                 </div>
               )}
@@ -359,48 +304,31 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button 
-          onClick={() => navigate('/patients/new')}
-          className="p-5 rounded-[1.5rem] bg-gradient-to-r from-forest-200/30 to-transparent hover:from-forest-200/50 transition-all duration-300 flex items-center gap-4 group text-left"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-forest-900/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <UserPlus className="h-5 w-5 text-forest-900" />
-          </div>
-          <div>
-            <p className="font-bold text-ink text-sm">Register Patient</p>
-            <p className="text-ink-500 text-xs">Add a new patient profile</p>
-          </div>
-        </button>
-        <button 
-          onClick={() => navigate('/appointments/new')}
-          className="p-5 rounded-[1.5rem] bg-gradient-to-r from-saffron-200/20 to-transparent hover:from-saffron-200/40 transition-all duration-300 flex items-center gap-4 group text-left"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-saffron-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Clock className="h-5 w-5 text-saffron-600" />
-          </div>
-          <div>
-            <p className="font-bold text-ink text-sm">Schedule Consultation</p>
-            <p className="text-ink-500 text-xs">Book a new appointment</p>
-          </div>
-        </button>
-        <button 
-          onClick={() => navigate('/food-database')}
-          className="p-5 rounded-[1.5rem] bg-gradient-to-r from-blue-100/20 to-transparent hover:from-blue-100/40 transition-all duration-300 flex items-center gap-4 group text-left"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <FileText className="h-5 w-5 text-blue-700" />
-          </div>
-          <div>
-            <p className="font-bold text-ink text-sm">Food Database</p>
-            <p className="text-ink-500 text-xs">Browse Ayurvedic food items</p>
-          </div>
-        </button>
+        {[
+          { to: '/patients/new', title: 'Register patient', text: 'Add a new patient profile', icon: UserPlus, tone: 'from-forest-200/30 hover:from-forest-200/60 text-forest-900' },
+          { to: '/appointments/new', title: 'Schedule consultation', text: 'Book a new appointment', icon: Clock, tone: 'from-saffron-200/30 hover:from-saffron-200/60 text-saffron-700' },
+          { to: '/food-database', title: 'Food database', text: 'Browse Ayurvedic food items', icon: FileText, tone: 'from-blue-100/40 hover:from-blue-100/80 text-blue-700' },
+        ].map(({ to, title, text, icon: Icon, tone }) => (
+          <Link
+            key={to}
+            to={to}
+            className={`p-5 rounded-[1.5rem] bg-gradient-to-r to-transparent transition-colors duration-200 flex items-center gap-4 ${tone}`}
+          >
+            <span className="w-12 h-12 shrink-0 rounded-2xl bg-white/70 flex items-center justify-center">
+              <Icon className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span>
+              <span className="block font-bold text-ink text-sm">{title}</span>
+              <span className="block text-ink-500 text-xs">{text}</span>
+            </span>
+          </Link>
+        ))}
       </div>
 
       {/* Recent Activity Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Patients */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-forest-200/30 flex items-center justify-center">
@@ -417,7 +345,7 @@ export default function Dashboard() {
               onClick={() => navigate('/patients')}
               className="text-forest-900 hover:bg-forest-900/5 rounded-full font-medium text-sm"
             >
-              View All
+              View all
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
@@ -425,10 +353,10 @@ export default function Dashboard() {
             <div className="space-y-2">
               {recentPatients.length > 0 ? (
                 recentPatients.map((patient) => (
-                  <div
+                  <Link
                     key={patient.id}
-                    className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-sand-100/80 cursor-pointer transition-all duration-300 group"
-                    onClick={() => navigate(`/patients/${patient.id}`)}
+                    to={`/patients/${patient.id}`}
+                    className="flex items-center justify-between gap-3 p-3.5 rounded-2xl hover:bg-sand-100/80 transition-colors duration-200 group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full bg-gradient-to-br from-forest-950 to-forest-900 flex items-center justify-center shadow-md shadow-forest-900/20">
@@ -446,7 +374,7 @@ export default function Dashboard() {
                     <Badge className={`${prakritiBadge(patient.prakriti)} border-0 rounded-full px-3 py-1 text-xs font-bold`}>
                       {patient.prakriti}
                     </Badge>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="text-center py-8">
@@ -459,7 +387,7 @@ export default function Dashboard() {
                     className="mt-3 rounded-full bg-forest-900 hover:bg-forest-800 text-white text-xs px-5"
                   >
                     <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-                    Add First Patient
+                    Add your first patient
                   </Button>
                 </div>
               )}
@@ -468,7 +396,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Upcoming Appointments */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-saffron-200/30 flex items-center justify-center">
@@ -485,7 +413,7 @@ export default function Dashboard() {
               onClick={() => navigate('/appointments')}
               className="text-saffron-600 hover:bg-saffron-500/5 rounded-full font-medium text-sm"
             >
-              View All
+              View all
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
@@ -495,7 +423,7 @@ export default function Dashboard() {
                 upcomingAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-sand-100/80 transition-all duration-300"
+                    className="flex items-center justify-between gap-3 p-3.5 rounded-2xl"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-2xl bg-blue-100/40 flex items-center justify-center">
@@ -509,15 +437,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <Badge 
-                      className={`border-0 rounded-full px-3 py-1 text-xs font-bold ${
-                        appointment.status === 'pending' 
-                          ? 'bg-saffron-200/40 text-saffron-700' 
-                          : appointment.status === 'completed'
-                          ? 'bg-forest-200/40 text-forest-900'
-                          : 'bg-danger-soft/40 text-danger'
-                      }`}
-                    >
+                    <Badge className={`border-0 rounded-full px-3 py-1 text-xs font-bold capitalize ${statusBadge(appointment.status)}`}>
                       {appointment.status}
                     </Badge>
                   </div>
@@ -530,7 +450,7 @@ export default function Dashboard() {
                   <p className="text-ink-500 font-medium">No upcoming appointments</p>
                   <Button 
                     onClick={() => navigate('/appointments/new')}
-                    className="mt-3 rounded-full bg-saffron-500 hover:bg-saffron-700 text-white text-xs px-5"
+                    className="mt-3 rounded-full bg-saffron-700 hover:bg-saffron-600 text-white text-xs px-5"
                   >
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
                     Schedule Consultation

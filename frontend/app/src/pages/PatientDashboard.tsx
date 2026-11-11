@@ -242,7 +242,7 @@ export default function PatientDashboard() {
   const displayWeeklyProgress = weeklyProgress;
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-[1200px] mx-auto relative">
+    <div className="relative mx-auto max-w-[1200px] space-y-8 px-4 py-6 sm:px-6 lg:px-10">
       {/* Background decorations */}
       <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-forest-900/[0.03] rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[30%] left-0 -z-10 w-[400px] h-[400px] bg-saffron-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
@@ -257,7 +257,7 @@ export default function PatientDashboard() {
             </div>
             <span className="text-sm font-bold text-saffron-600 uppercase tracking-wider">Wellness Journey</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">My Wellness Journey</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">My Wellness Journey</h1>
           <p className="text-ink-500 mt-2 text-base">Good to see you, {user?.name}. Your path to balance starts here.</p>
         </div>
         <div className="flex items-center gap-2 px-5 py-3 bg-white/60 backdrop-blur-xl rounded-full shadow-[0_4px_20px_rgba(28,28,26,0.04)]">

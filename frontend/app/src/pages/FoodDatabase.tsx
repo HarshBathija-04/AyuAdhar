@@ -1,6 +1,7 @@
 // AyuAahar - Food Database Page
 import React, { useEffect, useState } from 'react';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { FoodItem } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -79,7 +80,7 @@ export default function FoodDatabase() {
       setFoods(items);
       setFilteredFoods(items);
     } catch (error) {
-      console.error('Error fetching foods:', error);
+      toast.error(getErrorMessage(error, "Couldn't load the food database."));
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +109,7 @@ export default function FoodDatabase() {
       });
       fetchFoods();
     } catch (error) {
-      console.error('Error adding food:', error);
-      toast.error('Failed to add food');
+      toast.error(getErrorMessage(error, "Couldn't add this food."));
     } finally {
       setIsSubmitting(false);
     }
@@ -165,11 +165,11 @@ export default function FoodDatabase() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-ink">Food Database</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Food Database</h1>
           <p className="text-ink-700">Browse foods with nutritional and Ayurvedic properties</p>
         </div>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>

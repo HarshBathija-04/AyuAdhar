@@ -1,8 +1,9 @@
 // AyuAahar - Patient Detail Page
-import { prakritiBadge } from '@/lib/utils';
+import { prakritiBadge, statusBadge } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { Patient, DietPlan } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -78,8 +79,7 @@ export default function PatientDetail() {
       const dietPlanResponse = await api.getPatientDietPlan(Number(id));
       setActiveDietPlan(dietPlanResponse.diet_plan);
     } catch (error) {
-      console.error('Error fetching patient:', error);
-      toast.error('Failed to load patient data');
+      toast.error(getErrorMessage(error, "Couldn't load this patient."));
     } finally {
       setIsLoading(false);
     }
@@ -92,8 +92,7 @@ export default function PatientDetail() {
       setActiveDietPlan(response.diet_plan);
       toast.success('Diet plan generated successfully');
     } catch (error) {
-      console.error('Error generating diet plan:', error);
-      toast.error('Failed to generate diet plan');
+      toast.error(getErrorMessage(error, "Couldn't generate a diet plan."));
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +118,7 @@ export default function PatientDetail() {
       });
       fetchPatientData(); // Refresh to show new log
     } catch (error) {
-      console.error('Error adding progress:', error);
-      toast.error('Failed to add progress log');
+      toast.error(getErrorMessage(error, "Couldn't save the progress log."));
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +153,7 @@ export default function PatientDetail() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -163,7 +161,7 @@ export default function PatientDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-ink">{patient.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">{patient.name}</h1>
             <div className="flex items-center gap-2 mt-1">
               <Badge className={prakritiBadge(patient.prakriti)}>
                 {patient.prakriti}
@@ -395,10 +393,7 @@ export default function PatientDetail() {
                           </p>
                         </div>
                       </div>
-                      <Badge 
-                        variant={appointment.status === 'completed' ? 'default' : 'secondary'}
-                        className={appointment.status === 'pending' ? 'bg-saffron-500' : appointment.status === 'completed' ? 'bg-forest-700' : 'bg-danger'}
-                      >
+                      <Badge className={`border-0 capitalize ${statusBadge(appointment.status)}`}>
                         {appointment.status}
                       </Badge>
                     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,17 +34,16 @@ export default function Profile() {
         style: { background: '#1b4332', color: 'white', border: 'none' }
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast.error(getErrorMessage(error, "Couldn't update your profile."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6 lg:px-10">
       <div>
-        <h1 className="text-3xl font-bold text-ink tracking-tight">My Profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">My Profile</h1>
         <p className="text-ink-500 mt-1">Manage your personal information</p>
       </div>
 

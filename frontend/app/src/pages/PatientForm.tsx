@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '@/services/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { Patient, PrakritiType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,8 +71,7 @@ export default function PatientForm() {
         lifestyle: patient.lifestyle || ''
       });
     } catch (error) {
-      console.error('Error fetching patient:', error);
-      toast.error('Failed to load patient data');
+      toast.error(getErrorMessage(error, "Couldn't load this patient."));
       navigate('/patients');
     } finally {
       setIsLoading(false);
@@ -99,8 +99,7 @@ export default function PatientForm() {
       
       navigate('/patients');
     } catch (error) {
-      console.error('Error saving patient:', error);
-      toast.error(isEditMode ? 'Failed to update patient' : 'Failed to create patient');
+      toast.error(getErrorMessage(error, isEditMode ? "Couldn't update this patient." : "Couldn't add this patient."));
     } finally {
       setIsSaving(false);
     }
@@ -115,14 +114,14 @@ export default function PatientForm() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-10">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="outline" size="icon" onClick={() => navigate('/patients')} aria-label="Back to patients">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-ink">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
             {isEditMode ? 'Edit Patient' : 'Add New Patient'}
           </h1>
           <p className="text-ink-700">

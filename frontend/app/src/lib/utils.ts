@@ -18,3 +18,11 @@ const PRAKRITI_TONES: Record<string, { badge: string; chart: string }> = {
 
 export const prakritiBadge = (prakriti?: string) => (PRAKRITI_TONES[prakriti ?? ""] ?? PRAKRITI_TONES.Tridosha).badge
 export const prakritiChart = (prakriti?: string) => (PRAKRITI_TONES[prakriti ?? ""] ?? PRAKRITI_TONES.Tridosha).chart
+
+const STATUS_BADGES: Record<string, string> = {
+  pending: "bg-saffron-200/50 text-saffron-700",
+  completed: "bg-forest-200/50 text-forest-900",
+  cancelled: "bg-danger-soft text-danger",
+}
+
+export const statusBadge = (status?: string) => STATUS_BADGES[status ?? ""] ?? STATUS_BADGES.pending
