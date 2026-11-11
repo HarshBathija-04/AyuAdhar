@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Leaf, User, Mail, Lock } from 'lucide-react';
+import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/errors';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -27,7 +29,8 @@ export default function Register() {
   const [condition, setCondition] = useState('');
   
   const [localError, setLocalError] = useState('');
-  const { register, isLoading } = useAuth();
+  const { register } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,8 +47,8 @@ export default function Register() {
       return;
     }
 
-    if (password.length < 6) {
-      setLocalError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setLocalError('Password must be at least 8 characters');
       return;
     }
 
@@ -56,31 +59,43 @@ export default function Register() {
       }
     }
 
+    setIsLoading(true);
     try {
-      await register({ name, email, password, role, age, gender, prakriti, condition, weight_kg: weightKg ? parseFloat(weightKg) : undefined, height_cm: heightCm ? parseFloat(heightCm) : undefined });
+      const isPatient = role === 'patient';
+      await register({
+        name, email: email.trim(), password, role,
+        age: isPatient ? Number(age) : undefined,
+        gender: isPatient ? gender : undefined,
+        prakriti: isPatient ? prakriti || undefined : undefined,
+        condition: isPatient ? condition : undefined,
+        weight_kg: isPatient && weightKg ? parseFloat(weightKg) : undefined,
+        height_cm: isPatient && heightCm ? parseFloat(heightCm) : undefined,
+      });
+      toast.success('Account created. Welcome to AyuAahar!');
       navigate('/dashboard');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setLocalError(axiosError.response?.data?.message || 'Registration failed. Please try again.');
+      setLocalError(getErrorMessage(err, 'Registration failed. Please try again.'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-amber-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-sand-50 px-4 py-10">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2 bg-white p-3 rounded-full shadow-lg">
-            <div className="bg-green-600 p-2 rounded-full">
+            <div className="bg-forest-900 p-2 rounded-full">
               <Leaf className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-green-800 pr-2">AyuAahar</span>
+            <span className="text-xl font-bold text-forest-950 pr-2">AyuAahar</span>
           </div>
         </div>
 
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold text-gray-800">Create Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-ink">Create Account</CardTitle>
             <CardDescription>
               Join AyuAahar and start your wellness journey
             </CardDescription>
@@ -97,7 +112,7 @@ export default function Register() {
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
                   <Input
                     id="name"
                     type="text"
@@ -113,7 +128,7 @@ export default function Register() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
                   <Input
                     id="email"
                     type="email"
@@ -129,7 +144,7 @@ export default function Register() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
                   <Input
                     id="password"
                     type="password"
@@ -173,8 +188,8 @@ export default function Register() {
               </div>
 
               {role === 'patient' && (
-                <div className="space-y-4 pt-4 mt-2 border-t border-gray-100 animate-in fade-in duration-300">
-                  <p className="text-sm font-bold text-gray-800">Your Wellness Profile</p>
+                <div className="space-y-4 pt-4 mt-2 border-t border-sand-200 animate-in fade-in duration-300">
+                  <p className="text-sm font-bold text-ink">Your Wellness Profile</p>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -193,7 +208,7 @@ export default function Register() {
                     <div className="space-y-2">
                       <Label htmlFor="gender">Gender</Label>
                       <Select value={gender} onValueChange={setGender} required={role === 'patient'}>
-                        <SelectTrigger>
+                        <SelectTrigger id="gender">
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
@@ -234,16 +249,17 @@ export default function Register() {
                   <div className="space-y-2">
                     <Label htmlFor="prakriti">Primary Dosha / Prakriti (Optional)</Label>
                     <Select value={prakriti} onValueChange={setPrakriti}>
-                      <SelectTrigger>
+                      <SelectTrigger id="prakriti">
                         <SelectValue placeholder="I don't know my Dosha yet" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="vata">Vata (Air & Space)</SelectItem>
-                        <SelectItem value="pitta">Pitta (Fire & Water)</SelectItem>
-                        <SelectItem value="kapha">Kapha (Earth & Water)</SelectItem>
-                        <SelectItem value="vata-pitta">Vata-Pitta</SelectItem>
-                        <SelectItem value="pitta-kapha">Pitta-Kapha</SelectItem>
-                        <SelectItem value="vata-kapha">Vata-Kapha</SelectItem>
+                        <SelectItem value="Vata">Vata (Air & Space)</SelectItem>
+                        <SelectItem value="Pitta">Pitta (Fire & Water)</SelectItem>
+                        <SelectItem value="Kapha">Kapha (Earth & Water)</SelectItem>
+                        <SelectItem value="Vata-Pitta">Vata-Pitta</SelectItem>
+                        <SelectItem value="Pitta-Kapha">Pitta-Kapha</SelectItem>
+                        <SelectItem value="Vata-Kapha">Vata-Kapha</SelectItem>
+                        <SelectItem value="Tridosha">Tridosha (balanced)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -264,7 +280,7 @@ export default function Register() {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full bg-forest-900 hover:bg-forest-800"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -277,9 +293,9 @@ export default function Register() {
                 )}
               </Button>
 
-              <p className="text-sm text-center text-gray-600">
+              <p className="text-sm text-center text-ink-700">
                 Already have an account?{' '}
-                <Link to="/login" className="text-green-600 hover:text-green-700 font-medium">
+                <Link to="/login" className="text-forest-900 hover:text-forest-800 font-medium">
                   Sign in
                 </Link>
               </p>

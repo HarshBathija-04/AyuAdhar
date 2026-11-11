@@ -21,6 +21,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -135,23 +136,19 @@ export default function DietPlan() {
 
   const getPrakritiColor = (prakriti: string) => {
     const colors: Record<string, string> = {
-      'Vata': 'bg-green-100 text-green-800',
-      'Pitta': 'bg-amber-100 text-amber-800',
+      'Vata': 'bg-forest-200/50 text-forest-950',
+      'Pitta': 'bg-saffron-200/50 text-saffron-700',
       'Kapha': 'bg-blue-100 text-blue-800',
       'Vata-Pitta': 'bg-purple-100 text-purple-800',
       'Vata-Kapha': 'bg-pink-100 text-pink-800',
       'Pitta-Kapha': 'bg-cyan-100 text-cyan-800',
-      'Tridosha': 'bg-gray-100 text-gray-800',
+      'Tridosha': 'bg-sand-200 text-ink',
     };
-    return colors[prakriti] || 'bg-gray-100 text-gray-800';
+    return colors[prakriti] || 'bg-sand-200 text-ink';
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
@@ -163,7 +160,7 @@ export default function DietPlan() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-3xl font-bold text-ink">
               Diet Plan - {patient?.name}
             </h1>
             <div className="flex items-center gap-2 mt-1">
@@ -171,7 +168,7 @@ export default function DietPlan() {
                 {patient?.prakriti}
               </Badge>
               {dietPlan && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-ink-500">
                   Generated on {new Date(dietPlan.created_at).toLocaleDateString()}
                 </span>
               )}
@@ -188,7 +185,7 @@ export default function DietPlan() {
             Regenerate
           </Button>
           {dietPlan && (
-            <Button onClick={downloadReport} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={downloadReport} className="bg-forest-900 hover:bg-forest-800">
               <Download className="mr-2 h-4 w-4" />
               Download Report
             </Button>
@@ -205,22 +202,22 @@ export default function DietPlan() {
               const bmi = dietPlan.plan_data.bmi_info;
               const catColor =
                 bmi.category === 'Underweight' ? 'text-blue-600' :
-                bmi.category === 'Normal'      ? 'text-green-600' :
-                bmi.category === 'Overweight'  ? 'text-amber-600' :
-                'text-red-600';
+                bmi.category === 'Normal'      ? 'text-forest-900' :
+                bmi.category === 'Overweight'  ? 'text-saffron-600' :
+                'text-danger';
               const bgColor =
                 bmi.category === 'Underweight' ? 'bg-blue-50' :
-                bmi.category === 'Normal'      ? 'bg-green-50' :
-                bmi.category === 'Overweight'  ? 'bg-amber-50' :
-                'bg-red-50';
+                bmi.category === 'Normal'      ? 'bg-forest-200/20' :
+                bmi.category === 'Overweight'  ? 'bg-saffron-200/20' :
+                'bg-danger-soft/40';
               return (
                 <Card className={`col-span-2 md:col-span-1 ${bgColor} border-0`}>
                   <CardContent className="pt-6 text-center">
                     <Scale className={`mx-auto h-5 w-5 mb-1 ${catColor}`} />
                     <div className={`text-3xl font-bold ${catColor}`}>{bmi.bmi}</div>
-                    <p className="text-sm font-medium text-gray-700">BMI</p>
+                    <p className="text-sm font-medium text-ink-700">BMI</p>
                     <p className={`text-xs font-semibold mt-1 ${catColor}`}>{bmi.category}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-ink-500 mt-1">
                       {bmi.weight_kg} kg · {bmi.height_cm} cm
                     </p>
                   </CardContent>
@@ -229,11 +226,11 @@ export default function DietPlan() {
             })()}
             <Card>
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold text-green-600">
+                <div className="text-3xl font-bold text-forest-900">
                   {Math.round(dietPlan.plan_data?.total_nutrition?.target_calories ?? dietPlan.total_calories)}
                 </div>
-                <p className="text-sm text-gray-600">Target Cal</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm text-ink-700">Target Cal</p>
+                <p className="text-xs text-ink-500">
                   got {Math.round(dietPlan.total_calories)}
                 </p>
               </CardContent>
@@ -243,15 +240,15 @@ export default function DietPlan() {
                 <div className="text-3xl font-bold text-blue-600">
                   {Math.round(dietPlan.total_protein)}g
                 </div>
-                <p className="text-sm text-gray-600">Protein</p>
+                <p className="text-sm text-ink-700">Protein</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold text-amber-600">
+                <div className="text-3xl font-bold text-saffron-600">
                   {Math.round(dietPlan.total_carbs)}g
                 </div>
-                <p className="text-sm text-gray-600">Carbs</p>
+                <p className="text-sm text-ink-700">Carbs</p>
               </CardContent>
             </Card>
             <Card>
@@ -259,7 +256,7 @@ export default function DietPlan() {
                 <div className="text-3xl font-bold text-purple-600">
                   {Math.round(dietPlan.total_fats)}g
                 </div>
-                <p className="text-sm text-gray-600">Fats</p>
+                <p className="text-sm text-ink-700">Fats</p>
               </CardContent>
             </Card>
           </div>
@@ -270,7 +267,7 @@ export default function DietPlan() {
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Leaf className="h-5 w-5 text-green-600" />
+                  <Leaf className="h-5 w-5 text-forest-900" />
                   Ayurvedic Balance
                 </CardTitle>
               </CardHeader>
@@ -302,16 +299,16 @@ export default function DietPlan() {
                 )}
                 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                  <div className="flex items-center justify-between p-2 bg-forest-200/20 rounded">
                     <div className="flex items-center gap-2">
-                      <Wind className="h-4 w-4 text-green-600" />
+                      <Wind className="h-4 w-4 text-forest-900" />
                       <span>Vata</span>
                     </div>
                     <span className="font-medium">{dietPlan.vata_score}</span>
                   </div>
-                  <div className="flex items-center justify-between p-2 bg-amber-50 rounded">
+                  <div className="flex items-center justify-between p-2 bg-saffron-200/20 rounded">
                     <div className="flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-amber-600" />
+                      <Flame className="h-4 w-4 text-saffron-600" />
                       <span>Pitta</span>
                     </div>
                     <span className="font-medium">{dietPlan.pitta_score}</span>
@@ -326,16 +323,16 @@ export default function DietPlan() {
                 </div>
 
                 {dietPlan.plan_data?.ayurvedic_balance?.balance_status && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700">
+                  <div className="p-3 bg-sand-100 rounded-lg">
+                    <p className="text-sm font-medium text-ink-700">
                       Status: {dietPlan.plan_data.ayurvedic_balance.balance_status}
                     </p>
                   </div>
                 )}
 
                 {dietPlan.plan_data?.prakriti_guidelines && (
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
+                  <div className="p-3 bg-forest-200/20 rounded-lg">
+                    <p className="text-sm text-forest-950">
                       {dietPlan.plan_data.prakriti_guidelines}
                     </p>
                   </div>
@@ -347,7 +344,7 @@ export default function DietPlan() {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Utensils className="h-5 w-5 text-green-600" />
+                  <Utensils className="h-5 w-5 text-forest-900" />
                   Daily Meal Plan
                 </CardTitle>
               </CardHeader>
@@ -366,13 +363,13 @@ export default function DietPlan() {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold capitalize text-lg">{meal}</h4>
-                            <Badge variant="outline" className="text-green-600">
+                            <Badge variant="outline" className="text-forest-900">
                               {Math.round(data.total_calories)} cal
                             </Badge>
                           </div>
                           
                           {data.recommendations && (
-                            <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                            <p className="text-sm text-ink-700 bg-sand-100 p-2 rounded">
                               {data.recommendations}
                             </p>
                           )}
@@ -381,17 +378,17 @@ export default function DietPlan() {
                             {data.foods.map((food: { name: string; calories: number; quantity: string }, idx: number) => (
                               <div 
                                 key={idx} 
-                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                className="flex items-center justify-between p-3 bg-sand-100 rounded-lg"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                    <Utensils className="h-4 w-4 text-green-600" />
+                                  <div className="w-8 h-8 rounded-full bg-forest-200/50 flex items-center justify-center">
+                                    <Utensils className="h-4 w-4 text-forest-900" />
                                   </div>
                                   <span className="font-medium">{food.name}</span>
                                 </div>
                                 <div className="text-right">
                                   <p className="text-sm font-medium">{food.quantity}</p>
-                                  <p className="text-xs text-gray-500">{Math.round(food.calories)} cal</p>
+                                  <p className="text-xs text-ink-500">{Math.round(food.calories)} cal</p>
                                 </div>
                               </div>
                             ))}
@@ -401,7 +398,7 @@ export default function DietPlan() {
                     ))}
                   </Tabs>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No meal plan data available</p>
+                  <p className="text-ink-500 text-center py-8">No meal plan data available</p>
                 )}
               </CardContent>
             </Card>
@@ -412,57 +409,57 @@ export default function DietPlan() {
             const recs = dietPlan.plan_data?.dataset_recommendations;
             if (!recs || !Object.values(recs).some(v => !!v)) return null;
             return (
-              <Card className="border-amber-200 bg-amber-50">
+              <Card className="border-saffron-200 bg-saffron-200/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+                  <CardTitle className="text-lg flex items-center gap-2 text-saffron-700">
                     <BookOpen className="h-5 w-5" />
                     Ayurvedic Protocol (from Dataset)
                     {recs.disease_match && (
-                      <Badge className="bg-amber-200 text-amber-900 ml-2">
+                      <Badge className="bg-saffron-200 text-saffron-700 ml-2">
                         {recs.disease_match}
                       </Badge>
                     )}
                   </CardTitle>
-                  <CardDescription className="text-amber-700">
+                  <CardDescription className="text-saffron-700">
                     Evidence-based recommendations matched from the Ayurvedic clinical dataset
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {recs.diet_advice && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
-                        <p className="text-sm text-gray-700">{recs.diet_advice}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Diet &amp; Lifestyle</p>
+                        <p className="text-sm text-ink-700">{recs.diet_advice}</p>
                       </div>
                     )}
                     {recs.ayurvedic_herbs && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
-                        <p className="text-sm text-gray-700">{recs.ayurvedic_herbs}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Ayurvedic Herbs</p>
+                        <p className="text-sm text-ink-700">{recs.ayurvedic_herbs}</p>
                       </div>
                     )}
                     {recs.formulation && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Formulation</p>
-                        <p className="text-sm text-gray-700">{recs.formulation}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Formulation</p>
+                        <p className="text-sm text-ink-700">{recs.formulation}</p>
                       </div>
                     )}
                     {recs.yoga_therapy && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
-                        <p className="text-sm text-gray-700">{recs.yoga_therapy}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Yoga &amp; Therapy</p>
+                        <p className="text-sm text-ink-700">{recs.yoga_therapy}</p>
                       </div>
                     )}
                     {recs.prevention && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Prevention</p>
-                        <p className="text-sm text-gray-700">{recs.prevention}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Prevention</p>
+                        <p className="text-sm text-ink-700">{recs.prevention}</p>
                       </div>
                     )}
                     {recs.patient_recommendations && (
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Patient Tips</p>
-                        <p className="text-sm text-gray-700">{recs.patient_recommendations}</p>
+                      <div className="p-3 bg-white rounded-lg border border-saffron-200">
+                        <p className="text-xs font-semibold text-saffron-700 uppercase tracking-wide mb-1">Patient Tips</p>
+                        <p className="text-sm text-ink-700">{recs.patient_recommendations}</p>
                       </div>
                     )}
                   </div>
@@ -486,7 +483,7 @@ export default function DietPlan() {
                         <h4 className="font-medium">{food.name}</h4>
                         <Badge variant="outline">{food.category}</Badge>
                       </div>
-                      <div className="text-sm text-gray-600 space-y-1">
+                      <div className="text-sm text-ink-700 space-y-1">
                         <p>{Math.round(food.calories)} cal | P: {food.protein}g | C: {food.carbs}g | F: {food.fats}g</p>
                         <p className="text-xs">
                           Rasa: {food.rasa} | Virya: {food.virya}
@@ -502,14 +499,14 @@ export default function DietPlan() {
       ) : (
         <Card>
           <CardContent className="text-center py-12">
-            <Utensils className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No Diet Plan</h3>
-            <p className="mt-1 text-gray-500">
+            <Utensils className="mx-auto h-12 w-12 text-ink-300" />
+            <h3 className="mt-4 text-lg font-medium text-ink">No Diet Plan</h3>
+            <p className="mt-1 text-ink-500">
               Generate a personalized Ayurvedic diet plan for {patient?.name}
             </p>
             <Button 
               onClick={generatePlan} 
-              className="mt-4 bg-green-600 hover:bg-green-700"
+              className="mt-4 bg-forest-900 hover:bg-forest-800"
               disabled={isGenerating}
             >
               {isGenerating ? (

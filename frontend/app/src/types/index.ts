@@ -168,6 +168,24 @@ export interface RegisterData extends LoginCredentials {
   condition?: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  model: string;
+  disclaimer: string;
+}
+
+export interface PatientMyData {
+  patient: Patient;
+  diet_plan: DietPlan | null;
+  progress_logs: ProgressLog[];
+  appointments: Appointment[];
+}
+
 export interface ApiResponse<T> {
   message?: string;
   data?: T;

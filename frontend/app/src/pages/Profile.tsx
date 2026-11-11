@@ -41,21 +41,21 @@ export default function Profile() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500" style={{ fontFamily: "'Plus Jakarta Sans', 'Manrope', sans-serif" }}>
+    <div className="p-6 max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-[#1c1c1a] tracking-tight">My Profile</h1>
-        <p className="text-[#717973] mt-1" style={{ fontFamily: "'Manrope', sans-serif" }}>Manage your personal information</p>
+        <h1 className="text-3xl font-bold text-ink tracking-tight">My Profile</h1>
+        <p className="text-ink-500 mt-1">Manage your personal information</p>
       </div>
 
       <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden">
-        <CardHeader className="bg-[#f6f3ef]/50 border-b border-[#e5e2de] pb-6">
+        <CardHeader className="bg-sand-100/50 border-b border-sand-200 pb-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#012d1d] to-[#1b4332] flex items-center justify-center shadow-lg shadow-[#1b4332]/20">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-forest-950 to-forest-900 flex items-center justify-center shadow-lg shadow-forest-900/20">
               <User className="h-8 w-8 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-[#1c1c1a]">{user?.name}</CardTitle>
-              <CardDescription className="text-[#717973] uppercase tracking-wider text-xs font-bold mt-1" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              <CardTitle className="text-xl font-bold text-ink">{user?.name}</CardTitle>
+              <CardDescription className="text-ink-500 uppercase tracking-wider text-xs font-bold mt-1">
                 {user?.role} Account
               </CardDescription>
             </div>
@@ -64,51 +64,51 @@ export default function Profile() {
         <CardContent className="p-6">
           <form onSubmit={handleUpdateProfile} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-[#414844] font-bold">Full Name</Label>
+              <Label htmlFor="name" className="text-ink-700 font-bold">Full Name</Label>
               <div className="relative">
                 <Input 
                   id="name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
-                  className="pl-10 rounded-xl border-[#e5e2de] h-12 bg-[#f6f3ef]/50" 
+                  className="pl-10 rounded-xl border-sand-200 h-12 bg-sand-100/50" 
                 />
-                <User className="absolute left-3 top-3.5 h-5 w-5 text-[#a5d0b9]" />
+                <User className="absolute left-3 top-3.5 h-5 w-5 text-forest-700" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[#414844] font-bold">Email Address</Label>
+              <Label htmlFor="email" className="text-ink-700 font-bold">Email Address</Label>
               <div className="relative">
                 <Input 
                   id="email" 
                   value={user?.email || ''} 
                   disabled 
-                  className="pl-10 rounded-xl border-[#e5e2de] h-12 bg-[#e5e2de]/30 text-[#717973] cursor-not-allowed" 
+                  className="pl-10 rounded-xl border-sand-200 h-12 bg-sand-200/30 text-ink-500 cursor-not-allowed" 
                 />
-                <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#a5d0b9]" />
+                <Mail className="absolute left-3 top-3.5 h-5 w-5 text-forest-700" />
               </div>
-              <p className="text-xs text-[#717973] font-medium mt-1" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              <p className="text-xs text-ink-500 font-medium mt-1">
                 Email cannot be changed after registration.
               </p>
             </div>
 
             <div className="space-y-2 pb-4">
-              <Label htmlFor="role" className="text-[#414844] font-bold">Account Role</Label>
+              <Label htmlFor="role" className="text-ink-700 font-bold">Account Role</Label>
               <div className="relative">
                 <Input 
                   id="role" 
                   value={user?.role || ''} 
                   disabled 
-                  className="pl-10 rounded-xl border-[#e5e2de] h-12 bg-[#e5e2de]/30 text-[#717973] cursor-not-allowed capitalize" 
+                  className="pl-10 rounded-xl border-sand-200 h-12 bg-sand-200/30 text-ink-500 cursor-not-allowed capitalize" 
                 />
-                <Shield className="absolute left-3 top-3.5 h-5 w-5 text-[#a5d0b9]" />
+                <Shield className="absolute left-3 top-3.5 h-5 w-5 text-forest-700" />
               </div>
             </div>
 
             <Button 
               type="submit" 
               disabled={isSubmitting || name === user?.name}
-              className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-[#012d1d] to-[#1b4332] text-white hover:from-[#1b4332] hover:to-[#274e3d] h-11 px-8 shadow-lg shadow-[#1b4332]/20 font-bold"
+              className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-forest-950 to-forest-900 text-white hover:from-forest-900 hover:to-forest-800 h-11 px-8 shadow-lg shadow-forest-900/20 font-bold"
             >
               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Save Changes

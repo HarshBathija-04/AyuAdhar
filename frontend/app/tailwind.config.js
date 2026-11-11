@@ -1,5 +1,7 @@
+import animate from "tailwindcss-animate"
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ["class"],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -9,6 +11,12 @@ module.exports = {
         display: ['Plus Jakarta Sans', 'sans-serif'],
       },
       colors: {
+        // AyuAahar palette: forest (primary), sand (surfaces), ink (text), saffron (accent)
+        forest: { 200: "#c1ecd4", 300: "#a5d0b9", 700: "#3f6653", 800: "#274e3d", 900: "#1b4332", 950: "#012d1d" },
+        sand: { 50: "#fcf9f5", 100: "#f6f3ef", 200: "#e5e2de" },
+        ink: { DEFAULT: "#1c1c1a", 300: "#c1c8c2", 500: "#5d6560", 700: "#414844" },
+        saffron: { 200: "#ffdcc1", 300: "#ffb878", 500: "#d68c45", 600: "#a85f1c", 700: "#8c4f09" },
+        danger: { DEFAULT: "#ba1a1a", soft: "#ffdad6" },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -62,6 +70,8 @@ module.exports = {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        soft: "0 8px 40px rgba(28, 28, 26, 0.04)",
+        lift: "0 12px 48px rgba(28, 28, 26, 0.08)",
       },
       keyframes: {
         "accordion-down": {
@@ -84,5 +94,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 }

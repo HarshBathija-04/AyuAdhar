@@ -23,6 +23,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -126,15 +127,15 @@ export default function PatientDetail() {
 
   const getPrakritiColor = (prakriti: string) => {
     const colors: Record<string, string> = {
-      'Vata': 'bg-green-100 text-green-800',
-      'Pitta': 'bg-amber-100 text-amber-800',
+      'Vata': 'bg-forest-200/50 text-forest-950',
+      'Pitta': 'bg-saffron-200/50 text-saffron-700',
       'Kapha': 'bg-blue-100 text-blue-800',
       'Vata-Pitta': 'bg-purple-100 text-purple-800',
       'Vata-Kapha': 'bg-pink-100 text-pink-800',
       'Pitta-Kapha': 'bg-cyan-100 text-cyan-800',
-      'Tridosha': 'bg-gray-100 text-gray-800',
+      'Tridosha': 'bg-sand-200 text-ink',
     };
-    return colors[prakriti] || 'bg-gray-100 text-gray-800';
+    return colors[prakriti] || 'bg-sand-200 text-ink';
   };
 
   // Prepare progress chart data
@@ -153,17 +154,13 @@ export default function PatientDetail() {
   } : null;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (!patient) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Patient not found</p>
+        <p className="text-ink-500">Patient not found</p>
       </div>
     );
   }
@@ -177,12 +174,12 @@ export default function PatientDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">{patient.name}</h1>
+            <h1 className="text-3xl font-bold text-ink">{patient.name}</h1>
             <div className="flex items-center gap-2 mt-1">
               <Badge className={getPrakritiColor(patient.prakriti)}>
                 {patient.prakriti}
               </Badge>
-              <span className="text-gray-500">
+              <span className="text-ink-500">
                 {patient.age} years • {patient.gender}
               </span>
             </div>
@@ -193,7 +190,7 @@ export default function PatientDetail() {
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
-          <Button onClick={() => navigate(`/patients/${id}/diet-plan`)} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => navigate(`/patients/${id}/diet-plan`)} className="bg-forest-900 hover:bg-forest-800">
             <Utensils className="mr-2 h-4 w-4" />
             Diet Plan
           </Button>
@@ -216,39 +213,39 @@ export default function PatientDetail() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-green-600" />
+                  <FileText className="h-5 w-5 text-forest-900" />
                   Health Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-gray-500">Age</Label>
+                    <Label className="text-ink-500">Age</Label>
                     <p className="mt-1 font-medium">{patient.age} years</p>
                   </div>
                   <div>
-                    <Label className="text-gray-500">Gender</Label>
+                    <Label className="text-ink-500">Gender</Label>
                     <p className="mt-1 font-medium capitalize">{patient.gender}</p>
                   </div>
                   {patient.weight_kg && (
                     <div>
-                      <Label className="text-gray-500">Weight</Label>
+                      <Label className="text-ink-500">Weight</Label>
                       <p className="mt-1 font-medium">{patient.weight_kg} kg</p>
                     </div>
                   )}
                   {patient.height_cm && (
                     <div>
-                      <Label className="text-gray-500">Height</Label>
+                      <Label className="text-ink-500">Height</Label>
                       <p className="mt-1 font-medium">{patient.height_cm} cm</p>
                     </div>
                   )}
                 </div>
                 <div>
-                  <Label className="text-gray-500">Health Conditions</Label>
+                  <Label className="text-ink-500">Health Conditions</Label>
                   <p className="mt-1">{patient.condition || 'None specified'}</p>
                 </div>
                 <div>
-                  <Label className="text-gray-500">Lifestyle</Label>
+                  <Label className="text-ink-500">Lifestyle</Label>
                   <p className="mt-1">{patient.lifestyle || 'Not specified'}</p>
                 </div>
               </CardContent>
@@ -264,29 +261,29 @@ export default function PatientDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-green-600">
+                  <div className="bg-sand-100 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-forest-900">
                       {patient.diet_plans?.length || 0}
                     </p>
-                    <p className="text-sm text-gray-500">Diet Plans</p>
+                    <p className="text-sm text-ink-500">Diet Plans</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="bg-sand-100 p-4 rounded-lg text-center">
                     <p className="text-2xl font-bold text-blue-600">
                       {patient.appointments?.length || 0}
                     </p>
-                    <p className="text-sm text-gray-500">Appointments</p>
+                    <p className="text-sm text-ink-500">Appointments</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-amber-600">
+                  <div className="bg-sand-100 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-saffron-600">
                       {patient.progress_logs?.length || 0}
                     </p>
-                    <p className="text-sm text-gray-500">Progress Logs</p>
+                    <p className="text-sm text-ink-500">Progress Logs</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="bg-sand-100 p-4 rounded-lg text-center">
                     <p className="text-2xl font-bold text-purple-600">
                       {new Date(patient.created_at || '').toLocaleDateString()}
                     </p>
-                    <p className="text-sm text-gray-500">Registered</p>
+                    <p className="text-sm text-ink-500">Registered</p>
                   </div>
                 </div>
               </CardContent>
@@ -318,29 +315,29 @@ export default function PatientDetail() {
                 <div className="space-y-6">
                   {/* Nutritional Summary */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-green-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-green-600">
+                    <div className="bg-forest-200/20 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-forest-900">
                         {Math.round(activeDietPlan.total_calories)}
                       </p>
-                      <p className="text-sm text-gray-600">Calories</p>
+                      <p className="text-sm text-ink-700">Calories</p>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-lg text-center">
                       <p className="text-2xl font-bold text-blue-600">
                         {Math.round(activeDietPlan.total_protein)}g
                       </p>
-                      <p className="text-sm text-gray-600">Protein</p>
+                      <p className="text-sm text-ink-700">Protein</p>
                     </div>
-                    <div className="bg-amber-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-amber-600">
+                    <div className="bg-saffron-200/20 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-saffron-600">
                         {Math.round(activeDietPlan.total_carbs)}g
                       </p>
-                      <p className="text-sm text-gray-600">Carbs</p>
+                      <p className="text-sm text-ink-700">Carbs</p>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg text-center">
                       <p className="text-2xl font-bold text-purple-600">
                         {Math.round(activeDietPlan.total_fats)}g
                       </p>
-                      <p className="text-sm text-gray-600">Fats</p>
+                      <p className="text-sm text-ink-700">Fats</p>
                     </div>
                   </div>
 
@@ -350,10 +347,10 @@ export default function PatientDetail() {
                       {Object.entries(activeDietPlan.plan_data.meal_plan).map(([meal, data]) => (
                         <div key={meal} className="border rounded-lg p-4">
                           <h4 className="font-semibold capitalize mb-2">{meal}</h4>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-ink-700 mb-2">
                             {data.foods.map((f: { name: string }) => f.name).join(', ')}
                           </p>
-                          <p className="text-sm text-green-600">
+                          <p className="text-sm text-forest-900">
                             {Math.round(data.total_calories)} calories
                           </p>
                         </div>
@@ -363,12 +360,12 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Utensils className="mx-auto h-12 w-12 text-gray-300" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No Diet Plan</h3>
-                  <p className="mt-1 text-gray-500">
+                  <Utensils className="mx-auto h-12 w-12 text-ink-300" />
+                  <h3 className="mt-4 text-lg font-medium text-ink">No Diet Plan</h3>
+                  <p className="mt-1 text-ink-500">
                     Generate a personalized Ayurvedic diet plan for this patient
                   </p>
-                  <Button onClick={generateDietPlan} className="mt-4 bg-green-600 hover:bg-green-700">
+                  <Button onClick={generateDietPlan} className="mt-4 bg-forest-900 hover:bg-forest-800">
                     <Utensils className="mr-2 h-4 w-4" />
                     Generate Diet Plan
                   </Button>
@@ -395,7 +392,7 @@ export default function PatientDetail() {
               {patient.appointments && patient.appointments.length > 0 ? (
                 <div className="space-y-3">
                   {patient.appointments.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-sand-100 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                           <Calendar className="h-5 w-5 text-blue-600" />
@@ -404,14 +401,14 @@ export default function PatientDetail() {
                           <p className="font-medium">
                             {new Date(appointment.appointment_date).toLocaleDateString()}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-ink-500">
                             {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                       </div>
                       <Badge 
                         variant={appointment.status === 'completed' ? 'default' : 'secondary'}
-                        className={appointment.status === 'pending' ? 'bg-amber-500' : appointment.status === 'completed' ? 'bg-green-500' : 'bg-red-500'}
+                        className={appointment.status === 'pending' ? 'bg-saffron-500' : appointment.status === 'completed' ? 'bg-forest-700' : 'bg-danger'}
                       >
                         {appointment.status}
                       </Badge>
@@ -420,8 +417,8 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-                  <p className="mt-2 text-gray-500">No appointments scheduled</p>
+                  <Calendar className="mx-auto h-12 w-12 text-ink-300" />
+                  <p className="mt-2 text-ink-500">No appointments scheduled</p>
                 </div>
               )}
             </CardContent>
@@ -482,7 +479,7 @@ export default function PatientDetail() {
                     <div className="space-y-4">
                       <div className="flex justify-between">
                         <Label>Adherence Score (%)</Label>
-                        <span className="font-bold text-green-600">{newProgress.adherence_score}%</span>
+                        <span className="font-bold text-forest-900">{newProgress.adherence_score}%</span>
                       </div>
                       <Slider
                         value={[newProgress.adherence_score]}
@@ -515,7 +512,7 @@ export default function PatientDetail() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsProgressModalOpen(false)}>Cancel</Button>
-                    <Button onClick={handleAddProgress} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+                    <Button onClick={handleAddProgress} disabled={isLoading} className="bg-forest-900 hover:bg-forest-800">
                       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Save Progress
                     </Button>
@@ -553,16 +550,16 @@ export default function PatientDetail() {
                   {/* Progress Logs */}
                   <div className="space-y-3">
                     {patient.progress_logs.map((log) => (
-                      <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={log.id} className="flex items-center justify-between p-3 bg-sand-100 rounded-lg">
                         <div>
                           <p className="font-medium">Week {log.week_number}</p>
                           {log.notes && (
-                            <p className="text-sm text-gray-500">{log.notes}</p>
+                            <p className="text-sm text-ink-500">{log.notes}</p>
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600">{log.adherence_score}%</p>
-                          <p className="text-xs text-gray-500">Adherence</p>
+                          <p className="font-bold text-forest-900">{log.adherence_score}%</p>
+                          <p className="text-xs text-ink-500">Adherence</p>
                         </div>
                       </div>
                     ))}
@@ -570,8 +567,8 @@ export default function PatientDetail() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Activity className="mx-auto h-12 w-12 text-gray-300" />
-                  <p className="mt-2 text-gray-500">No progress logs yet</p>
+                  <Activity className="mx-auto h-12 w-12 text-ink-300" />
+                  <p className="mt-2 text-ink-500">No progress logs yet</p>
                 </div>
               )}
             </CardContent>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
 import {
   Table,
   TableBody,
@@ -138,33 +139,29 @@ export default function FoodDatabase() {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'grain': 'bg-amber-100 text-amber-800',
-      'vegetable': 'bg-green-100 text-green-800',
-      'fruit': 'bg-red-100 text-red-800',
+      'grain': 'bg-saffron-200/50 text-saffron-700',
+      'vegetable': 'bg-forest-200/50 text-forest-950',
+      'fruit': 'bg-danger-soft text-danger',
       'protein': 'bg-purple-100 text-purple-800',
       'dairy': 'bg-blue-100 text-blue-800',
-      'spice': 'bg-orange-100 text-orange-800',
+      'spice': 'bg-saffron-200/60 text-saffron-700',
       'beverage': 'bg-cyan-100 text-cyan-800',
       'nuts': 'bg-yellow-100 text-yellow-800',
       'snack': 'bg-pink-100 text-pink-800',
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || 'bg-sand-200 text-ink';
   };
 
   const getViryaColor = (virya: string) => {
     return virya === 'heating' 
-      ? 'text-red-600 bg-red-50' 
+      ? 'text-danger bg-danger-soft/40' 
       : 'text-blue-600 bg-blue-50';
   };
 
   const categories = Array.from(new Set((foods || []).map(f => f?.category).filter(Boolean)));
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
@@ -172,12 +169,12 @@ export default function FoodDatabase() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Food Database</h1>
-          <p className="text-gray-600">Browse foods with nutritional and Ayurvedic properties</p>
+          <h1 className="text-3xl font-bold text-ink">Food Database</h1>
+          <p className="text-ink-700">Browse foods with nutritional and Ayurvedic properties</p>
         </div>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-forest-900 hover:bg-forest-800">
               <Plus className="mr-2 h-4 w-4" />
               Add Food
             </Button>
@@ -193,8 +190,8 @@ export default function FoodDatabase() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={newFood.category} onValueChange={(val: any) => setNewFood({...newFood, category: val})}>
-                  <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+                <Select value={newFood.category} onValueChange={(val: string) => setNewFood({...newFood, category: val})}>
+                  <SelectTrigger id="category"><SelectValue placeholder="Category" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="grain">Grain</SelectItem>
                     <SelectItem value="vegetable">Vegetable</SelectItem>
@@ -218,8 +215,8 @@ export default function FoodDatabase() {
               <div className="space-y-2"><Label>Guna (Qualities)</Label><Input value={newFood.guna} onChange={(e) => setNewFood({...newFood, guna: e.target.value})} /></div>
               <div className="space-y-2">
                 <Label htmlFor="virya">Virya (Potency)</Label>
-                <Select value={newFood.virya} onValueChange={(val: any) => setNewFood({...newFood, virya: val})}>
-                  <SelectTrigger><SelectValue placeholder="Virya" /></SelectTrigger>
+                <Select value={newFood.virya} onValueChange={(val: string) => setNewFood({...newFood, virya: val as FoodItem['virya']})}>
+                  <SelectTrigger id="virya"><SelectValue placeholder="Virya" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="heating">Heating</SelectItem>
                     <SelectItem value="cooling">Cooling</SelectItem>
@@ -228,8 +225,8 @@ export default function FoodDatabase() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="vipaka">Vipaka (Post-Digestive)</Label>
-                <Select value={newFood.vipaka} onValueChange={(val: any) => setNewFood({...newFood, vipaka: val})}>
-                  <SelectTrigger><SelectValue placeholder="Vipaka" /></SelectTrigger>
+                <Select value={newFood.vipaka} onValueChange={(val: string) => setNewFood({...newFood, vipaka: val as FoodItem['vipaka']})}>
+                  <SelectTrigger id="vipaka"><SelectValue placeholder="Vipaka" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sweet">Sweet</SelectItem>
                     <SelectItem value="sour">Sour</SelectItem>
@@ -241,8 +238,8 @@ export default function FoodDatabase() {
               <div className="space-y-2"><Label>Suitable For (Doshas)</Label><Input value={newFood.suitable_for} onChange={(e) => setNewFood({...newFood, suitable_for: e.target.value})} placeholder="Vata, Pitta" /></div>
               <div className="space-y-2">
                 <Label htmlFor="meal_type">Meal Type</Label>
-                <Select value={newFood.meal_type} onValueChange={(val: any) => setNewFood({...newFood, meal_type: val})}>
-                  <SelectTrigger><SelectValue placeholder="Meal Type" /></SelectTrigger>
+                <Select value={newFood.meal_type} onValueChange={(val: string) => setNewFood({...newFood, meal_type: val as FoodItem['meal_type']})}>
+                  <SelectTrigger id="meal_type"><SelectValue placeholder="Meal Type" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="any">Any</SelectItem>
                     <SelectItem value="breakfast">Breakfast</SelectItem>
@@ -255,7 +252,7 @@ export default function FoodDatabase() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-              <Button onClick={handleAddFood} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleAddFood} disabled={isSubmitting} className="bg-forest-900 hover:bg-forest-800">
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Save Food
               </Button>
@@ -269,7 +266,7 @@ export default function FoodDatabase() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
               <Input
                 placeholder="Search foods..."
                 value={searchQuery}
@@ -279,7 +276,7 @@ export default function FoodDatabase() {
             </div>
             
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filter by category">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -293,7 +290,7 @@ export default function FoodDatabase() {
             </Select>
 
             <Select value={prakritiFilter} onValueChange={setPrakritiFilter}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Suitable for prakriti">
                 <SelectValue placeholder="Suitable for prakriti" />
               </SelectTrigger>
               <SelectContent>
@@ -344,20 +341,20 @@ export default function FoodDatabase() {
                     <TableCell>
                       <div className="text-sm">
                         <p>{Math.round(food.calories || 0)} cal</p>
-                        <p className="text-gray-500">
+                        <p className="text-ink-500">
                           P: {food.protein}g | C: {food.carbs}g | F: {food.fats}g
                         </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm space-y-1">
-                        <p><span className="text-gray-500">Rasa:</span> {food.rasa}</p>
-                        <p><span className="text-gray-500">Virya:</span> 
+                        <p><span className="text-ink-500">Rasa:</span> {food.rasa}</p>
+                        <p><span className="text-ink-500">Virya:</span> 
                           <Badge variant="outline" className={`ml-1 ${getViryaColor(food.virya)}`}>
                             {food.virya}
                           </Badge>
                         </p>
-                        <p><span className="text-gray-500">Vipaka:</span> {food.vipaka}</p>
+                        <p><span className="text-ink-500">Vipaka:</span> {food.vipaka}</p>
                       </div>
                     </TableCell>
                     <TableCell>

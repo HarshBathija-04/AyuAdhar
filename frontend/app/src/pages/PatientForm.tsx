@@ -18,6 +18,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
 
 const PRAKRITI_OPTIONS: PrakritiType[] = [
   'Vata',
@@ -110,11 +111,7 @@ export default function PatientForm() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
@@ -125,10 +122,10 @@ export default function PatientForm() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-ink">
             {isEditMode ? 'Edit Patient' : 'Add New Patient'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-ink-700">
             {isEditMode ? 'Update patient information' : 'Create a new patient record'}
           </p>
         </div>
@@ -237,7 +234,7 @@ export default function PatientForm() {
                   value={formData.prakriti}
                   onValueChange={(value) => handleChange('prakriti', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="prakriti">
                     <SelectValue placeholder="Select prakriti type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -248,7 +245,7 @@ export default function PatientForm() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-ink-500">
                   Prakriti determines the patient's natural body constitution
                 </p>
               </div>
@@ -289,7 +286,7 @@ export default function PatientForm() {
             </Button>
             <Button
               type="submit"
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-forest-900 hover:bg-forest-800"
               disabled={isSaving}
             >
               {isSaving ? (

@@ -1,104 +1,71 @@
-// AyuAahar - Authentication Context
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+// AyuAahar - Authentication context (JWT stored in localStorage)
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User, LoginCredentials, RegisterData } from '@/types';
 import api from '@/services/api';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  /** True only while the stored session is restored on first load. */
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
-  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check for stored token and user on mount
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-        // Verify token is still valid
-        api.getProfile().catch(() => {
-          logout();
-        });
-      } catch {
-        logout();
-      }
-    }
-    setIsLoading(false);
-  }, []);
-
-  const login = async (credentials: LoginCredentials) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      const response = await api.login(credentials);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (data: RegisterData) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      const response = await api.register(data);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setError(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        register,
-        logout,
-        error,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+function readStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem('user');
+    return raw && localStorage.getItem('token') ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
 }
 
+function clearSession() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(readStoredUser);
+
+  useEffect(() => {
+    if (!readStoredUser()) return;
+    // Re-validate the stored token in the background; the API interceptor handles expiry
+    api.getProfile().then(
+      ({ user: fresh }) => {
+        localStorage.setItem('user', JSON.stringify(fresh));
+        setUser(fresh);
+      },
+      () => undefined,
+    );
+  }, []);
+
+  const startSession = ({ user: u, token }: { user: User; token: string }) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    isLoading: false,
+    login: async (credentials) => startSession(await api.login(credentials)),
+    register: async (data) => startSession(await api.register(data)),
+    logout: () => {
+      clearSession();
+      setUser(null);
+    },
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

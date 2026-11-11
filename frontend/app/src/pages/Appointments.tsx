@@ -27,10 +27,11 @@ import {
   Calendar as CalendarIcon, 
   Plus, 
   CheckCircle,
-  XCircle,
-  Loader2
+  XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
+import { getErrorMessage } from '@/lib/errors';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 
 export default function Appointments() {
@@ -42,6 +43,7 @@ export default function Appointments() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [myPatientId, setMyPatientId] = useState<number | null>(null);
   const [, setSelectedDate] = useState<Date | null>(null);
   
   // Form state
@@ -91,6 +93,9 @@ export default function Appointments() {
         const month = currentDate.getMonth() + 1;
         const calendarResponse = await api.getCalendarEvents(year, month);
         setCalendarEvents(calendarResponse?.events || []);
+      } else {
+        const mine = await api.getPatientMyData();
+        setMyPatientId(mine.patient.id);
       }
       
     } catch (error) {
@@ -110,20 +115,24 @@ export default function Appointments() {
     }
 
     if (user?.role === 'patient') {
-      const dateTime = new Date(`${formData.appointment_date}T${formData.appointment_time}`);
-      const newMockAppt: Appointment = {
-        id: Math.floor(Math.random() * 10000),
-        patient_id: 1, // mock
-        patient_name: user.name,
-        appointment_date: dateTime.toISOString(),
-        notes: formData.notes,
-        status: 'pending'
-      };
-      
-      setAppointments(prev => [newMockAppt, ...prev]);
-      toast.success('Consultation requested successfully!');
-      setDialogOpen(false);
-      resetForm();
+      if (!myPatientId) {
+        toast.error('Your patient record is not available yet');
+        return;
+      }
+      try {
+        const dateTime = new Date(`${formData.appointment_date}T${formData.appointment_time}`);
+        await api.createAppointment({
+          patient_id: myPatientId,
+          appointment_date: dateTime.toISOString(),
+          notes: formData.notes ? `Requested by patient: ${formData.notes}` : 'Requested by patient',
+        });
+        toast.success('Consultation requested. Your dietitian will confirm it.');
+        setDialogOpen(false);
+        resetForm();
+        fetchData();
+      } catch (error) {
+        toast.error(getErrorMessage(error, 'Could not request the consultation'));
+      }
       return;
     }
 
@@ -197,11 +206,7 @@ export default function Appointments() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const days = getDaysInMonth();
@@ -212,10 +217,10 @@ export default function Appointments() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Appointments</h1>
-          <p className="text-gray-600">Manage your consultation schedule</p>
+          <h1 className="text-3xl font-bold text-ink">Appointments</h1>
+          <p className="text-ink-700">Manage your consultation schedule</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+        <Button onClick={() => setDialogOpen(true)} className="bg-forest-900 hover:bg-forest-800">
           <Plus className="mr-2 h-4 w-4" />
           {user?.role === 'patient' ? 'Request Appointment' : 'Schedule Appointment'}
         </Button>
@@ -250,7 +255,7 @@ export default function Appointments() {
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1">
             {weekDays.map(day => (
-              <div key={day} className="text-center font-medium text-gray-500 py-2">
+              <div key={day} className="text-center font-medium text-ink-500 py-2">
                 {day}
               </div>
             ))}
@@ -262,12 +267,12 @@ export default function Appointments() {
                 <div
                   key={day.toISOString()}
                   className={`
-                    min-h-[80px] p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
-                    ${isToday ? 'bg-green-50 border-green-300' : 'bg-white'}
+                    min-h-[80px] p-2 border rounded-lg cursor-pointer hover:bg-sand-100 transition-colors
+                    ${isToday ? 'bg-forest-200/20 border-forest-300' : 'bg-white'}
                   `}
                   onClick={() => handleDateClick(day)}
                 >
-                  <div className={`text-sm font-medium ${isToday ? 'text-green-700' : ''}`}>
+                  <div className={`text-sm font-medium ${isToday ? 'text-forest-800' : ''}`}>
                     {format(day, 'd')}
                   </div>
                   <div className="space-y-1 mt-1">
@@ -276,16 +281,16 @@ export default function Appointments() {
                         key={idx}
                         className={`
                           text-xs px-1 py-0.5 rounded truncate
-                          ${event.status === 'pending' ? 'bg-amber-100 text-amber-800' : ''}
-                          ${event.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                          ${event.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
+                          ${event.status === 'pending' ? 'bg-saffron-200/50 text-saffron-700' : ''}
+                          ${event.status === 'completed' ? 'bg-forest-200/50 text-forest-950' : ''}
+                          ${event.status === 'cancelled' ? 'bg-danger-soft text-danger' : ''}
                         `}
                       >
                         {event.time} {event.patient_name}
                       </div>
                     ))}
                     {events.length > 2 && (
-                      <div className="text-xs text-gray-500">+{events.length - 2} more</div>
+                      <div className="text-xs text-ink-500">+{events.length - 2} more</div>
                     )}
                   </div>
                 </div>
@@ -308,14 +313,14 @@ export default function Appointments() {
                 .filter(a => a.status === 'pending')
                 .slice(0, 5)
                 .map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-sand-100 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <CalendarIcon className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <p className="font-medium">{appointment.patient_name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-ink-500">
                           {new Date(appointment.appointment_date).toLocaleDateString()} at{' '}
                           {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
@@ -326,7 +331,7 @@ export default function Appointments() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-green-600"
+                          className="text-forest-900"
                           onClick={() => updateAppointmentStatus(appointment.id, 'completed')}
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -334,7 +339,7 @@ export default function Appointments() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-red-600"
+                          className="text-danger"
                           onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
                         >
                           <XCircle className="h-4 w-4" />
@@ -345,7 +350,7 @@ export default function Appointments() {
                 ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No upcoming appointments</p>
+            <p className="text-ink-500 text-center py-8">No upcoming appointments</p>
           )}
         </CardContent>
       </Card>
@@ -369,7 +374,7 @@ export default function Appointments() {
                     value={formData.patient_id}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, patient_id: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="patient">
                       <SelectValue placeholder="Select patient" />
                     </SelectTrigger>
                     <SelectContent>
@@ -421,7 +426,7 @@ export default function Appointments() {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+              <Button type="submit" className="bg-forest-900 hover:bg-forest-800">
                 {user?.role === 'patient' ? 'Request' : 'Schedule'}
               </Button>
             </DialogFooter>

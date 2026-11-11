@@ -1,8 +1,15 @@
 // AyuAahar - API Service
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import type { User, Patient, DietPlan, Appointment, ProgressLog, FoodItem, LoginCredentials, RegisterData, CalendarEvent, DashboardStats } from '@/types';
+import type { User, Patient, DietPlan, Appointment, ProgressLog, FoodItem, LoginCredentials, RegisterData, CalendarEvent, DashboardStats, ChatMessage, ChatResponse, PatientMyData } from '@/types';
+import { startRequestTimer } from '@/lib/serverStatus';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    _settle?: () => void;
+  }
+}
 
 class ApiService {
   private client: AxiosInstance;
@@ -13,6 +20,8 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      // Render's free tier can take ~60s to cold start
+      timeout: 90_000,
     });
 
     // Add request interceptor to include auth token
@@ -22,6 +31,7 @@ class ApiService {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        config._settle = startRequestTimer();
         return config;
       },
       (error) => Promise.reject(error)
@@ -29,12 +39,18 @@ class ApiService {
 
     // Add response interceptor for error handling
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        response.config._settle?.();
+        return response;
+      },
       (error) => {
-        if (error.response?.status === 401) {
+        error.config?._settle?.();
+        const hadSession = Boolean(error.config?.headers?.Authorization);
+        // Only an expired session should bounce to /login; a failed sign-in must show its own error
+        if (error.response?.status === 401 && hadSession) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          window.location.assign('/login?expired=1');
         }
         return Promise.reject(error);
       }
@@ -63,7 +79,7 @@ class ApiService {
   }
 
   // Patient self endpoints
-  async getPatientMyData(): Promise<any> {
+  async getPatientMyData(): Promise<PatientMyData> {
     const response: AxiosResponse = await this.client.get('/patient/my-data');
     return response.data;
   }
@@ -224,8 +240,14 @@ class ApiService {
     return response.data;
   }
 
-  // Health check
-  async healthCheck(): Promise<{ status: string; service: string; version: string }> {
+  // AI wellness assistant (Groq, proxied by the backend)
+  async chat(messages: ChatMessage[], patientId?: number): Promise<ChatResponse> {
+    const response: AxiosResponse = await this.client.post('/ai/chat', { messages, patient_id: patientId });
+    return response.data;
+  }
+
+  // Health check (also used to wake a sleeping backend)
+  async healthCheck(): Promise<{ status: string; db: string }> {
     const response: AxiosResponse = await this.client.get('/health');
     return response.data;
   }

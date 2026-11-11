@@ -37,10 +37,10 @@ import {
   Trash2, 
   FileText,
   Utensils,
-  Loader2,
   User
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PageSkeleton from '@/components/PageSkeleton';
 
 export default function Patients() {
   const navigate = useNavigate();
@@ -104,23 +104,19 @@ export default function Patients() {
 
   const getPrakritiColor = (prakriti: string) => {
     const colors: Record<string, string> = {
-      'Vata': 'bg-green-100 text-green-800',
-      'Pitta': 'bg-amber-100 text-amber-800',
+      'Vata': 'bg-forest-200/50 text-forest-950',
+      'Pitta': 'bg-saffron-200/50 text-saffron-700',
       'Kapha': 'bg-blue-100 text-blue-800',
       'Vata-Pitta': 'bg-purple-100 text-purple-800',
       'Vata-Kapha': 'bg-pink-100 text-pink-800',
       'Pitta-Kapha': 'bg-cyan-100 text-cyan-800',
-      'Tridosha': 'bg-gray-100 text-gray-800',
+      'Tridosha': 'bg-sand-200 text-ink',
     };
-    return colors[prakriti] || 'bg-gray-100 text-gray-800';
+    return colors[prakriti] || 'bg-sand-200 text-ink';
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
@@ -128,10 +124,10 @@ export default function Patients() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Patients</h1>
-          <p className="text-gray-600">Manage your patient records</p>
+          <h1 className="text-3xl font-bold text-ink">Patients</h1>
+          <p className="text-ink-700">Manage your patient records</p>
         </div>
-        <Button onClick={() => navigate('/patients/new')} className="bg-green-600 hover:bg-green-700">
+        <Button onClick={() => navigate('/patients/new')} className="bg-forest-900 hover:bg-forest-800">
           <Plus className="mr-2 h-4 w-4" />
           Add Patient
         </Button>
@@ -141,7 +137,7 @@ export default function Patients() {
       <Card>
         <CardContent className="pt-6">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
             <Input
               placeholder="Search patients by name or prakriti..."
               value={searchQuery}
@@ -174,11 +170,11 @@ export default function Patients() {
               </TableHeader>
               <TableBody>
                 {filteredPatients.map((patient) => (
-                  <TableRow key={patient.id} className="cursor-pointer hover:bg-gray-50">
+                  <TableRow key={patient.id} className="cursor-pointer hover:bg-sand-100">
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                          <User className="h-4 w-4 text-green-600" />
+                        <div className="w-8 h-8 rounded-full bg-forest-200/50 flex items-center justify-center">
+                          <User className="h-4 w-4 text-forest-900" />
                         </div>
                         <span className="font-medium">{patient.name}</span>
                       </div>
@@ -215,7 +211,7 @@ export default function Patients() {
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(patient)}
-                            className="text-red-600"
+                            className="text-danger"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
@@ -229,15 +225,15 @@ export default function Patients() {
             </Table>
           ) : (
             <div className="text-center py-12">
-              <User className="mx-auto h-12 w-12 text-gray-300" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No patients found</h3>
-              <p className="mt-1 text-gray-500">
+              <User className="mx-auto h-12 w-12 text-ink-300" />
+              <h3 className="mt-4 text-lg font-medium text-ink">No patients found</h3>
+              <p className="mt-1 text-ink-500">
                 {searchQuery ? 'Try adjusting your search' : 'Get started by adding a new patient'}
               </p>
               {!searchQuery && (
                 <Button 
                   onClick={() => navigate('/patients/new')} 
-                  className="mt-4 bg-green-600 hover:bg-green-700"
+                  className="mt-4 bg-forest-900 hover:bg-forest-800"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Patient
