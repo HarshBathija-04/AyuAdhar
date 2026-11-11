@@ -1,31 +1,16 @@
-# AyuAahar - Dockerfile for Backend
-FROM python:3.11-slim
+# AyuAahar API - production-style image (also used by docker-compose for local dev)
+FROM python:3.13-slim
 
-# Set working directory
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PORT=5000
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements
 COPY backend/requirements.txt .
+RUN pip install -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy backend code
 COPY backend/ .
+RUN useradd --create-home appuser && chown -R appuser /app
+USER appuser
 
-# Expose port
 EXPOSE 5000
-
-# Environment variables
-ENV FLASK_APP=app.py
-ENV FLASK_ENV=production
-ENV PYTHONUNBUFFERED=1
-
-# Run the application
-CMD ["python", "app.py"]
+# Migrate + idempotent seed, then serve with gunicorn
+CMD ["sh", "-c", "alembic upgrade head && python seed.py && exec gunicorn app:app --bind 0.0.0.0:${PORT} --workers 2 --threads 4 --timeout 120"]

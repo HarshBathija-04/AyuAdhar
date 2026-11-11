@@ -1,0 +1,27 @@
+# Render Blueprint - API web service only. The shared Postgres database is created once by hand;
+# paste its connection string into DATABASE_URL after the first sync.
+services:
+  - type: web
+    name: ayuaahar-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && python seed.py && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: APP_ENV
+        value: production
+      - key: DB_SCHEMA
+        value: ayuadhar
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

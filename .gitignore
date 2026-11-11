@@ -52,12 +52,9 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
 
 # Frontend build
-frontend/dist/
-frontend/build/
+frontend/app/dist/
 
 # Logs
 logs/
@@ -67,10 +64,14 @@ logs/
 coverage/
 .nyc_output/
 
-# Docker
-.dockerignore
 
 # Misc
 *.bak
 *.tmp
 *.temp
+
+# Tooling caches
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.tsbuildinfo
