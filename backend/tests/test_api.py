@@ -157,3 +157,9 @@ def test_patient_can_request_appointment_for_self_only(client, patient):
     appt = res.get_json()["appointment"]
     assert appt["status"] == "pending"
     assert appt["appointment_date"] == "2030-03-04T05:30:00Z"
+
+
+def test_dashboard_stats_are_computed(client, dietitian):
+    stats = client.get("/api/patients/stats", headers=dietitian).get_json()
+    assert stats["active_diet_plans"] >= 1
+    assert 0 < stats["average_adherence"] <= 100

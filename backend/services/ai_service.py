@@ -27,7 +27,8 @@ never contradict a clinician's instructions.
 thoughts, signs of stroke, very high or low blood sugar), tell them to seek emergency care immediately.
 - Herbs and supplements can interact with medicines and pregnancy: always advise checking with their \
 doctor or pharmacist first.
-- Be warm, concise and practical: short paragraphs or bullet lists, under 250 words unless asked for more.
+- Be warm, concise and practical, under 250 words unless asked for more.
+- Format as plain text: short paragraphs and "- " bullet lists, **bold** for key terms. No tables, headings or HTML.
 - Use the patient context below when relevant. If it is missing, ask a brief clarifying question.
 - Politely decline topics unrelated to diet, wellness or using the app."""
 

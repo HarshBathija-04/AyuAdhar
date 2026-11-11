@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, abort, jsonify, request
 from sqlalchemy import func
 
-from models import Patient, db
+from models import DietPlan, Patient, Progress, db
 from schemas import PatientIn, PatientUpdateIn, parse, parse_partial
 from utils.auth import dietitian_required, get_patient_or_404, token_required
 
@@ -108,8 +108,13 @@ def get_patient_stats():
         Patient.user_id == request.user_id,
         Patient.created_at >= datetime.utcnow() - timedelta(days=30),
     ).count()
+    owned = db.session.query(Patient.id).filter(Patient.user_id == request.user_id)
+    active_plans = DietPlan.query.filter(DietPlan.patient_id.in_(owned), DietPlan.is_active.is_(True)).count()
+    avg_adherence = db.session.query(func.avg(Progress.adherence_score)).filter(Progress.patient_id.in_(owned)).scalar()
     return jsonify(
         total_patients=total,
         prakriti_distribution=[{"prakriti": p, "count": c} for p, c in distribution],
         recent_patients=recent,
+        active_diet_plans=active_plans,
+        average_adherence=round(float(avg_adherence)) if avg_adherence is not None else None,
     ), 200
