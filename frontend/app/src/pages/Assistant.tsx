@@ -147,7 +147,7 @@ export default function Assistant() {
   const prompts = isDietitian ? DIETITIAN_PROMPTS : PATIENT_PROMPTS;
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 pb-6 pt-2 sm:px-6 lg:px-10">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full bg-forest-200/40 px-3 py-1 text-xs font-bold text-forest-900">

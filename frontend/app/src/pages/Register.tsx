@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Leaf, User, Mail, Lock } from 'lucide-react';
+import { Loader2, User, Mail, Lock } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/errors';
 
@@ -83,21 +84,15 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-sand-50 px-4 py-10">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-2 bg-white p-3 rounded-full shadow-lg">
-            <div className="bg-forest-900 p-2 rounded-full">
-              <Leaf className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-forest-950 pr-2">AyuAahar</span>
-          </div>
-        </div>
+        <Link to="/" className="mx-auto mb-8 flex w-fit" aria-label="AyuAahar home">
+          <Logo />
+        </Link>
 
-        <Card className="shadow-xl border-0">
+        <Card className="rounded-[2rem] border-0 shadow-lift">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold text-ink">Create Account</CardTitle>
+            <CardTitle className="text-2xl font-extrabold text-ink">Create your account</CardTitle>
             <CardDescription>
-              Join AyuAahar and start your wellness journey
+              Dietitians get a practice workspace; patients get a personal wellness dashboard.
             </CardDescription>
           </CardHeader>
 
@@ -280,7 +275,7 @@ export default function Register() {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-forest-900 hover:bg-forest-800"
+                className="h-11 w-full rounded-xl bg-gradient-to-r from-forest-950 to-forest-900 text-base hover:to-forest-800"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -289,13 +284,13 @@ export default function Register() {
                     Creating account...
                   </>
                 ) : (
-                  'Create Account'
+                  'Create account'
                 )}
               </Button>
 
               <p className="text-sm text-center text-ink-700">
                 Already have an account?{' '}
-                <Link to="/login" className="text-forest-900 hover:text-forest-800 font-medium">
+                <Link to="/login" className="font-semibold text-forest-900 underline-offset-4 hover:underline">
                   Sign in
                 </Link>
               </p>

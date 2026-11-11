@@ -47,7 +47,7 @@ export default function Profile() {
         <p className="text-ink-500 mt-1">Manage your personal information</p>
       </div>
 
-      <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden">
+      <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden">
         <CardHeader className="bg-sand-100/50 border-b border-sand-200 pb-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-forest-950 to-forest-900 flex items-center justify-center shadow-lg shadow-forest-900/20">

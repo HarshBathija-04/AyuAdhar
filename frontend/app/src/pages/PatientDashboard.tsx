@@ -239,7 +239,6 @@ export default function PatientDashboard() {
     ? Math.round((todayMeals.filter(m => m.status === 'completed').length / todayMeals.length) * 100) 
     : 0;
   const displayAdherence = adherenceScore > 0 ? adherenceScore : todayAdherence;
-  const displayWeeklyProgress = weeklyProgress;
 
   return (
     <div className="relative mx-auto max-w-[1200px] space-y-8 px-4 py-6 sm:px-6 lg:px-10">
@@ -257,8 +256,8 @@ export default function PatientDashboard() {
             </div>
             <span className="text-sm font-bold text-saffron-600 uppercase tracking-wider">Wellness Journey</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">My Wellness Journey</h1>
-          <p className="text-ink-500 mt-2 text-base">Good to see you, {user?.name}. Your path to balance starts here.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Good to see you, {user?.name?.split(" ")[0]}</h1>
+          <p className="text-ink-500 mt-2 text-base">Here is today's plan and how your week is going.</p>
         </div>
         <div className="flex items-center gap-2 px-5 py-3 bg-white/60 backdrop-blur-xl rounded-full shadow-[0_4px_20px_rgba(28,28,26,0.04)]">
           <Leaf className="h-4 w-4 text-forest-900" />
@@ -269,7 +268,7 @@ export default function PatientDashboard() {
       {/* Dosha & Daily Targets */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
         {/* Dosha Balance Card */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl md:col-span-4 overflow-hidden relative group">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl md:col-span-4 overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-forest-200/10 to-transparent pointer-events-none" />
           <CardContent className="p-6 relative">
             <div className="flex items-center justify-between mb-6">
@@ -277,7 +276,7 @@ export default function PatientDashboard() {
               <Wind className="h-5 w-5 text-forest-700" />
             </div>
             <div className="flex items-end gap-4 mb-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-forest-950 to-forest-900 flex items-center justify-center shadow-xl shadow-forest-900/30 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-forest-950 to-forest-900 flex items-center justify-center shadow-xl shadow-forest-900/30">
                 <span className="text-2xl font-extrabold text-white">{activePlan.prakriti ? activePlan.prakriti[0] : '?'}</span>
               </div>
               <div>
@@ -300,7 +299,7 @@ export default function PatientDashboard() {
         </Card>
 
         {/* Daily Targets Card */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl md:col-span-8 overflow-hidden relative">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl md:col-span-8 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-40 h-40 bg-saffron-500/5 rounded-full blur-[60px] -mr-10 -mt-10 pointer-events-none" />
           <CardContent className="p-6 relative">
             <div className="flex items-center justify-between mb-6">
@@ -348,7 +347,7 @@ export default function PatientDashboard() {
       {/* Main Content: Meals & Appointments */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Today's Meals - Takes more space */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl lg:col-span-3">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl lg:col-span-3">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
@@ -430,7 +429,7 @@ export default function PatientDashboard() {
         {/* Right Column: Adherence + Consultations */}
         <div className="lg:col-span-2 space-y-6">
           {/* Weekly Adherence */}
-          <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden relative">
+          <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-saffron-500/5 to-transparent pointer-events-none" />
             <CardContent className="p-6 relative">
               <div className="flex items-center justify-between mb-5">
@@ -466,7 +465,7 @@ export default function PatientDashboard() {
 
               {/* Weekly Mini Chart */}
               <div className="flex items-end justify-between gap-1 h-12">
-                {displayWeeklyProgress.map((val, i) => (
+                {weeklyProgress.map((val, i) => (
                   <div key={i} className="flex flex-col items-center gap-1 flex-1">
                     <div 
                       className={`w-full rounded-full transition-all duration-500 ${val > 0 ? 'bg-gradient-to-t from-saffron-500 to-saffron-300' : 'bg-sand-200/60'}`}
@@ -480,7 +479,7 @@ export default function PatientDashboard() {
           </Card>
 
           {/* Consultations */}
-          <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+          <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-blue-100/30 flex items-center justify-center">
@@ -536,7 +535,7 @@ export default function PatientDashboard() {
       {/* Dosha Tips & Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Dosha Tips */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden relative">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-forest-200/10 to-transparent pointer-events-none" />
           <CardHeader className="relative pb-2">
             <div className="flex items-center gap-3 mb-1">
@@ -566,7 +565,7 @@ export default function PatientDashboard() {
         </Card>
 
         {/* My Progress */}
-        <Card className="border-0 shadow-[0_8px_40px_rgba(28,28,26,0.04)] rounded-[2rem] bg-white/70 backdrop-blur-xl">
+        <Card className="border-0 shadow-soft rounded-[2rem] bg-white/70 backdrop-blur-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-3">

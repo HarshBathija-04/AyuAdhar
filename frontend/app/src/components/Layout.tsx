@@ -1,7 +1,8 @@
-// AyuAahar - Layout Component with Role-Based Sidebar (Stitch Digital Sanctuary Design)
+// AyuAahar - app shell: role-based sidebar, header with account menu
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,7 +21,6 @@ import {
   X,
   User,
   ChevronDown,
-  Leaf,
   Heart,
   Activity,
   Sparkles
@@ -51,7 +51,7 @@ export default function Layout({ fallback }: { fallback?: ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out successfully');
+    toast.success('Signed out');
     navigate('/login');
   };
 
@@ -95,18 +95,15 @@ export default function Layout({ fallback }: { fallback?: ReactNode }) {
         aria-label="Main navigation"
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-72 bg-white/70 backdrop-blur-2xl lg:m-4 lg:rounded-[2rem] shadow-[0_8px_40px_rgba(28,28,26,0.04)]
+          w-72 bg-white/70 backdrop-blur-2xl lg:m-4 lg:rounded-[2rem] shadow-soft
           transform transition-all duration-300 ease-in-out flex flex-col
           ${sidebarOpen ? 'translate-x-0 visible' : '-translate-x-full invisible lg:visible lg:translate-x-0'}
         `}
       >
         {/* Sidebar Header */}
         <div className="h-20 flex items-center justify-between px-6">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-forest-950 to-forest-900 p-2.5 rounded-2xl shadow-lg shadow-forest-900/20">
-              <Leaf className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-extrabold text-forest-950 tracking-tight">AyuAahar</span>
+          <Link to="/dashboard" aria-label="AyuAahar dashboard">
+            <Logo />
           </Link>
           <Button 
             variant="ghost" 
@@ -145,7 +142,7 @@ export default function Layout({ fallback }: { fallback?: ReactNode }) {
                 aria-current={active ? 'page' : undefined}
                 className={`
                   flex items-center gap-3.5 px-4 py-3.5 rounded-2xl
-                  transition-all duration-300
+                  transition-colors duration-200
                   ${active 
                     ? 'bg-gradient-to-r from-forest-200/40 to-transparent text-forest-900 font-bold shadow-sm' 
                     : 'text-ink-500 hover:bg-sand-100 hover:text-ink'
@@ -221,7 +218,7 @@ export default function Layout({ fallback }: { fallback?: ReactNode }) {
                 className="text-danger rounded-xl px-3 py-2.5 cursor-pointer hover:bg-danger-soft/30"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span className="font-medium text-sm">Logout</span>
+                <span className="font-medium text-sm">Sign out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

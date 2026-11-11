@@ -1,7 +1,8 @@
 // AyuAahar - Sign in page (with one-click demo accounts)
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { HeartPulse, Leaf, Loader2, Lock, Mail, Stethoscope } from 'lucide-react';
+import { HeartPulse, Loader2, Lock, Mail, Stethoscope } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errors';
@@ -55,10 +56,7 @@ export default function Login() {
     <main className="flex min-h-screen items-center justify-center bg-sand-50 px-4 py-10">
       <div className="w-full max-w-md">
         <Link to="/" className="mx-auto mb-8 flex w-fit items-center gap-2.5" aria-label="AyuAahar home">
-          <span className="rounded-xl bg-gradient-to-br from-forest-950 to-forest-900 p-2 shadow-md shadow-forest-900/20">
-            <Leaf className="h-5 w-5 text-white" aria-hidden="true" />
-          </span>
-          <span className="font-display text-xl font-bold text-forest-950">AyuAahar</span>
+          <Logo />
         </Link>
 
         <section className="rounded-[2rem] bg-white p-6 shadow-lift sm:p-8" aria-labelledby="login-title">

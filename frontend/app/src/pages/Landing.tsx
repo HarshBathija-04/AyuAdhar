@@ -1,6 +1,7 @@
 // AyuAahar - Landing page
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Logo from '@/components/Logo';
 import {
   Activity,
   Apple,
@@ -95,17 +96,6 @@ const SAMPLE_MEALS = [
   { meal: 'Lunch', food: 'Moong dal, brown rice, carrots', kcal: 694 },
   { meal: 'Dinner', food: 'Khichdi, vegetable soup', kcal: 431 },
 ];
-
-function Logo() {
-  return (
-    <span className="flex items-center gap-2.5">
-      <span className="rounded-xl bg-gradient-to-br from-forest-950 to-forest-900 p-2 shadow-md shadow-forest-900/20">
-        <Leaf className="h-5 w-5 text-white" aria-hidden="true" />
-      </span>
-      <span className="font-display text-xl font-bold tracking-tight text-forest-950">AyuAahar</span>
-    </span>
-  );
-}
 
 export default function Landing() {
   const [scrolled, setScrolled] = useState(false);
@@ -366,12 +356,7 @@ export default function Landing() {
       <footer className="bg-ink px-4 py-12 text-sand-200 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-8">
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2.5">
-              <span className="rounded-xl bg-forest-900 p-2">
-                <Leaf className="h-5 w-5 text-white" aria-hidden="true" />
-              </span>
-              <span className="font-display text-xl font-bold text-white">AyuAahar</span>
-            </div>
+            <Logo inverted />
             <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <a href="#features" className="hover:text-white">
                 Features
