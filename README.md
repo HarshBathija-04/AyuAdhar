@@ -67,7 +67,7 @@ docker compose up --build                 # Postgres + API on http://localhost:5
 docker compose --profile web up --build   # also the Vite dev server on http://localhost:5173
 ```
 
-Set `GROQ_API_KEY` in your shell first if you want the assistant to work.
+Put `GROQ_API_KEY` in `backend/.env` (gitignored) if you want the assistant to work; compose loads it automatically.
 
 ### Option B: run each part
 

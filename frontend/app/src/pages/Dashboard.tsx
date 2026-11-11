@@ -1,3 +1,4 @@
+import { prakritiBadge, prakritiChart } from '@/lib/utils';
 import PageSkeleton from '@/components/PageSkeleton';
 // AyuAahar - Dietitian Dashboard (Stitch Digital Sanctuary Design)
 import { useEffect, useState } from 'react';
@@ -110,15 +111,7 @@ export default function Dashboard() {
     datasets: [
       {
         data: stats?.prakriti_distribution.map(p => p.count) || [],
-        backgroundColor: [
-          '#1b4332',
-          '#D68C45',
-          '#3b82f6',
-          '#8b5cf6',
-          '#ec4899',
-          '#06b6d4',
-          '#a5d0b9',
-        ],
+        backgroundColor: stats?.prakriti_distribution.map((p) => prakritiChart(p.prakriti)) || [],
         borderWidth: 0,
         borderRadius: 4,
       },
@@ -140,18 +133,6 @@ export default function Dashboard() {
     ],
   };
 
-  const getPrakritiColor = (prakriti: string) => {
-    const colors: Record<string, string> = {
-      'Vata': 'bg-forest-200/40 text-forest-900',
-      'Pitta': 'bg-saffron-200/40 text-saffron-700',
-      'Kapha': 'bg-blue-100/40 text-blue-800',
-      'Vata-Pitta': 'bg-violet-100/40 text-violet-700',
-      'Vata-Kapha': 'bg-pink-100/40 text-pink-700',
-      'Pitta-Kapha': 'bg-cyan-100/40 text-cyan-700',
-      'Tridosha': 'bg-sand-100 text-ink-700',
-    };
-    return colors[prakriti] || colors['Tridosha'];
-  };
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto relative">
@@ -168,7 +149,7 @@ export default function Dashboard() {
             </div>
             <span className="text-sm font-bold text-forest-900 uppercase tracking-wider">Practice Overview</span>
           </div>
-          <h1 className="text-4xl font-extrabold text-ink tracking-tight">Welcome back, {user?.name}</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">Welcome back, {user?.name}</h1>
           <p className="text-ink-500 mt-2 text-base">Here's what's happening in your practice today</p>
         </div>
         <div className="hidden md:flex items-center gap-3">
@@ -344,7 +325,7 @@ export default function Dashboard() {
                         ticks: {
                           stepSize: 1,
                           font: { family: 'Manrope', size: 11, weight: 500 },
-                          color: '#717973',
+                          color: '#5d6560',
                         },
                         grid: { color: 'rgba(193,200,194,0.15)' },
                         border: { display: false },
@@ -462,7 +443,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <Badge className={`${getPrakritiColor(patient.prakriti)} border-0 rounded-full px-3 py-1 text-xs font-bold`}>
+                    <Badge className={`${prakritiBadge(patient.prakriti)} border-0 rounded-full px-3 py-1 text-xs font-bold`}>
                       {patient.prakriti}
                     </Badge>
                   </div>

@@ -1,4 +1,5 @@
 // AyuAahar - Diet Plan Page
+import { prakritiBadge } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '@/services/api';
@@ -126,26 +127,14 @@ export default function DietPlan() {
           Math.abs(dietPlan.pitta_score) + 5,
           Math.abs(dietPlan.kapha_score) + 5,
         ],
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        borderColor: '#10b981',
+        backgroundColor: 'rgba(27, 67, 50, 0.15)',
+        borderColor: '#1b4332',
         borderWidth: 2,
-        pointBackgroundColor: '#10b981',
+        pointBackgroundColor: '#1b4332',
       },
     ],
   } : null;
 
-  const getPrakritiColor = (prakriti: string) => {
-    const colors: Record<string, string> = {
-      'Vata': 'bg-forest-200/50 text-forest-950',
-      'Pitta': 'bg-saffron-200/50 text-saffron-700',
-      'Kapha': 'bg-blue-100 text-blue-800',
-      'Vata-Pitta': 'bg-purple-100 text-purple-800',
-      'Vata-Kapha': 'bg-pink-100 text-pink-800',
-      'Pitta-Kapha': 'bg-cyan-100 text-cyan-800',
-      'Tridosha': 'bg-sand-200 text-ink',
-    };
-    return colors[prakriti] || 'bg-sand-200 text-ink';
-  };
 
   if (isLoading) {
     return <PageSkeleton />;
@@ -164,7 +153,7 @@ export default function DietPlan() {
               Diet Plan - {patient?.name}
             </h1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className={getPrakritiColor(patient?.prakriti || '')}>
+              <Badge className={prakritiBadge(patient?.prakriti || '')}>
                 {patient?.prakriti}
               </Badge>
               {dietPlan && (

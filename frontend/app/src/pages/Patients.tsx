@@ -1,4 +1,5 @@
 // AyuAahar - Patients List Page
+import { prakritiBadge } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/services/api';
@@ -102,18 +103,6 @@ export default function Patients() {
     }
   };
 
-  const getPrakritiColor = (prakriti: string) => {
-    const colors: Record<string, string> = {
-      'Vata': 'bg-forest-200/50 text-forest-950',
-      'Pitta': 'bg-saffron-200/50 text-saffron-700',
-      'Kapha': 'bg-blue-100 text-blue-800',
-      'Vata-Pitta': 'bg-purple-100 text-purple-800',
-      'Vata-Kapha': 'bg-pink-100 text-pink-800',
-      'Pitta-Kapha': 'bg-cyan-100 text-cyan-800',
-      'Tridosha': 'bg-sand-200 text-ink',
-    };
-    return colors[prakriti] || 'bg-sand-200 text-ink';
-  };
 
   if (isLoading) {
     return <PageSkeleton />;
@@ -183,7 +172,7 @@ export default function Patients() {
                     <TableCell>{patient.age}</TableCell>
                     <TableCell className="capitalize">{patient.gender}</TableCell>
                     <TableCell>
-                      <Badge className={getPrakritiColor(patient.prakriti)}>
+                      <Badge className={prakritiBadge(patient.prakriti)}>
                         {patient.prakriti}
                       </Badge>
                     </TableCell>

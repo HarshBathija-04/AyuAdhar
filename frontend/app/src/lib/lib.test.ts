@@ -2,6 +2,7 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getErrorMessage, NETWORK_ERROR_MESSAGE } from './errors';
 import { isServerWaking, startRequestTimer, subscribeServerWaking } from './serverStatus';
+import { prakritiBadge, prakritiChart } from './utils';
 
 const axiosError = (status?: number, data?: unknown) => {
   const config = { headers: new AxiosHeaders() };
@@ -43,5 +44,13 @@ describe('server waking tracker', () => {
     expect(isServerWaking()).toBe(false);
     expect(events).toEqual([true, false]);
     unsubscribe();
+  });
+});
+
+describe('prakriti tones', () => {
+  it('uses one colour per dosha and falls back to Tridosha', () => {
+    expect(prakritiBadge('Vata')).toContain('blue');
+    expect(prakritiChart('Kapha')).toBe('#1b4332');
+    expect(prakritiBadge('Unknown')).toBe(prakritiBadge('Tridosha'));
   });
 });

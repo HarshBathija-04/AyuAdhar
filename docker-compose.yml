@@ -18,13 +18,17 @@ services:
 
   backend:
     build: .
+    # GROQ_API_KEY (and any other local overrides) come from the gitignored backend/.env
+    env_file:
+      - path: backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/portfolio
       DB_SCHEMA: ayuadhar
       JWT_SECRET: local-docker-secret-change-me-please-32b
       FRONTEND_URL: http://localhost:5173
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
       APP_ENV: development
+      PORT: "5000"
     ports:
       - "5000:5000"
     depends_on:

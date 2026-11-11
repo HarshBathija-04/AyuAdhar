@@ -257,7 +257,7 @@ export default function PatientDashboard() {
             </div>
             <span className="text-sm font-bold text-saffron-600 uppercase tracking-wider">Wellness Journey</span>
           </div>
-          <h1 className="text-4xl font-extrabold text-ink tracking-tight">My Wellness Journey</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">My Wellness Journey</h1>
           <p className="text-ink-500 mt-2 text-base">Good to see you, {user?.name}. Your path to balance starts here.</p>
         </div>
         <div className="flex items-center gap-2 px-5 py-3 bg-white/60 backdrop-blur-xl rounded-full shadow-[0_4px_20px_rgba(28,28,26,0.04)]">
