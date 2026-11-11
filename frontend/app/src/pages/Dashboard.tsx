@@ -52,6 +52,8 @@ ChartJS.register(
   LineElement
 );
 
+const STATUS_COLORS: Record<string, string> = { pending: '#d68c45', completed: '#1b4332', cancelled: '#ba1a1a' };
+
 export default function Dashboard() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -130,7 +132,8 @@ export default function Dashboard() {
       {
         label: 'Appointments',
         data: stats?.status_breakdown.map(s => s.count) || [],
-        backgroundColor: ['#D68C45', '#1b4332', '#ba1a1a'],
+        // Colour by meaning, not by position: pending = saffron, completed = forest, cancelled = danger
+        backgroundColor: stats?.status_breakdown.map((s) => STATUS_COLORS[s.status] ?? '#5d6560') || [],
         borderRadius: 12,
         borderSkipped: false,
       },
@@ -226,7 +229,7 @@ export default function Dashboard() {
               </div>
               <ArrowUpRight className="h-4 w-4 text-saffron-600" />
             </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.total_patients || 0}</div>
+            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.active_diet_plans ?? 0}</div>
             <p className="text-sm text-ink-500 mt-1 font-medium">Active Diet Plans</p>
             <div className="mt-3 flex items-center gap-1.5">
               <span className="text-xs font-bold text-saffron-600 bg-saffron-200/50 px-2 py-0.5 rounded-full">Active</span>
@@ -244,11 +247,11 @@ export default function Dashboard() {
               </div>
               <ArrowUpRight className="h-4 w-4 text-violet-700" />
             </div>
-            <div className="text-3xl font-extrabold text-ink tracking-tight">85%</div>
-            <p className="text-sm text-ink-500 mt-1 font-medium">Success Rate</p>
+            <div className="text-3xl font-extrabold text-ink tracking-tight">{stats?.average_adherence != null ? `${stats.average_adherence}%` : '–'}</div>
+            <p className="text-sm text-ink-500 mt-1 font-medium">Average Adherence</p>
             <div className="mt-3 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-violet-700 bg-violet-100/50 px-2 py-0.5 rounded-full">↑ 12%</span>
-              <span className="text-xs text-ink-500">patient adherence</span>
+              <span className="text-xs font-bold text-violet-700 bg-violet-100/50 px-2 py-0.5 rounded-full">Weekly</span>
+              <span className="text-xs text-ink-500">across logged check-ins</span>
             </div>
           </CardContent>
         </Card>

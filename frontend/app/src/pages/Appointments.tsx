@@ -333,6 +333,7 @@ export default function Appointments() {
                           variant="outline"
                           className="text-forest-900"
                           onClick={() => updateAppointmentStatus(appointment.id, 'completed')}
+                          aria-label="Mark appointment completed"
                         >
                           <CheckCircle className="h-4 w-4" />
                         </Button>
@@ -341,6 +342,7 @@ export default function Appointments() {
                           variant="outline"
                           className="text-danger"
                           onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
+                          aria-label="Cancel appointment"
                         >
                           <XCircle className="h-4 w-4" />
                         </Button>

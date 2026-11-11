@@ -170,7 +170,7 @@ export default function PatientDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate('/patients')}>
+          <Button variant="outline" size="icon" onClick={() => navigate('/patients')} aria-label="Back to patients">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>

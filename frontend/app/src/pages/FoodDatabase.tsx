@@ -268,6 +268,7 @@ export default function FoodDatabase() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
               <Input
+                aria-label="Search foods"
                 placeholder="Search foods..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -325,6 +326,13 @@ export default function FoodDatabase() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {(filteredFoods || []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-10 text-center text-sm text-ink-500">
+                      No foods match these filters. Try clearing the search or choosing another category.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {(filteredFoods || []).map((food) => (
                   <TableRow key={food.id}>
                     <TableCell>

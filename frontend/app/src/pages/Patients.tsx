@@ -139,6 +139,7 @@ export default function Patients() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-ink-500" />
             <Input
+              aria-label="Search patients"
               placeholder="Search patients by name or prakriti..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -192,8 +193,8 @@ export default function Patients() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" aria-label={`Actions for ${patient.name}`}>
+                            <MoreVertical className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">

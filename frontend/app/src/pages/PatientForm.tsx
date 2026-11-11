@@ -118,7 +118,7 @@ export default function PatientForm() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="icon" onClick={() => navigate('/patients')}>
+        <Button variant="outline" size="icon" onClick={() => navigate('/patients')} aria-label="Back to patients">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>

@@ -147,6 +147,8 @@ export interface DashboardStats {
   total_patients: number;
   prakriti_distribution: { prakriti: string; count: number }[];
   recent_patients: number;
+  active_diet_plans?: number;
+  average_adherence?: number | null;
   total_appointments: number;
   upcoming_this_week: number;
   status_breakdown: { status: string; count: number }[];
