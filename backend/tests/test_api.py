@@ -131,3 +131,29 @@ def test_ai_chat_without_key(client, patient, monkeypatch):
 def test_ai_chat_validates_messages(client, patient):
     res = client.post("/api/ai/chat", headers=patient, json={"messages": [{"role": "assistant", "content": "x"}]})
     assert res.status_code == 400
+
+
+def test_patient_can_self_report_progress_only_for_self(client, patient, dietitian):
+    mine = client.get("/api/patient/my-data", headers=patient).get_json()["patient"]["id"]
+    ok = client.post(
+        "/api/progress", headers=patient, json={"patient_id": mine, "week_number": 9, "adherence_score": 88}
+    )
+    assert ok.status_code == 201
+    other = next(
+        p["id"] for p in client.get("/api/patients", headers=dietitian).get_json()["patients"] if p["id"] != mine
+    )
+    denied = client.post("/api/progress", headers=patient, json={"patient_id": other, "week_number": 9})
+    assert denied.status_code == 404
+
+
+def test_patient_can_request_appointment_for_self_only(client, patient):
+    mine = client.get("/api/patient/my-data", headers=patient).get_json()["patient"]["id"]
+    res = client.post(
+        "/api/appointments",
+        headers=patient,
+        json={"patient_id": mine, "appointment_date": "2030-03-04T05:30:00Z", "status": "completed"},
+    )
+    assert res.status_code == 201
+    appt = res.get_json()["appointment"]
+    assert appt["status"] == "pending"
+    assert appt["appointment_date"] == "2030-03-04T05:30:00Z"

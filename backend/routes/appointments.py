@@ -7,7 +7,7 @@ from sqlalchemy import func
 
 from models import Appointment, Patient, db
 from schemas import AppointmentIn, AppointmentUpdateIn, parse, parse_partial
-from utils.auth import can_access_patient, dietitian_required, token_required
+from utils.auth import can_access_patient, dietitian_required, get_patient_or_404, token_required
 
 appointments_bp = Blueprint("appointments", __name__)
 
@@ -58,12 +58,12 @@ def get_appointment(appointment_id):
 
 @appointments_bp.post("/appointments")
 @token_required
-@dietitian_required
 def create_appointment():
+    """Dietitians schedule; patients may request a consultation for themselves (always pending)."""
     data = parse(AppointmentIn)
-    patient = db.session.get(Patient, data.patient_id)
-    if not patient or patient.user_id != request.user_id:
-        abort(404, description="Patient not found")
+    get_patient_or_404(data.patient_id)
+    if request.user_role == "patient":
+        data.status = "pending"
     appt = Appointment(**data.model_dump())
     db.session.add(appt)
     db.session.commit()

@@ -216,7 +216,9 @@ class Appointment(db.Model):
             'id': self.id,
             'patient_id': self.patient_id,
             'patient_name': self.patient.name if self.patient else None,
-            'appointment_date': self.appointment_date.isoformat() if self.appointment_date else None,
+            'appointment_date': self.appointment_date.isoformat() + 'Z'
+            if self.appointment_date
+            else None,  # stored as UTC
             'notes': self.notes,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,

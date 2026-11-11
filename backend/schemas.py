@@ -1,15 +1,17 @@
 # AyuAahar - request validation schemas (pydantic v2)
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 
 from flask import request
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, StringConstraints, model_validator
 
 Prakriti = Literal["Vata", "Pitta", "Kapha", "Vata-Pitta", "Vata-Kapha", "Pitta-Kapha", "Tridosha"]
 Gender = Literal["male", "female", "other"]
 Status = Literal["pending", "completed", "cancelled"]
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 LongText = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)]
+# Stored as naive UTC; timezone-aware input (e.g. ISO strings ending in Z) is converted first
+UtcDateTime = Annotated[datetime, AfterValidator(lambda d: d.astimezone(UTC).replace(tzinfo=None) if d.tzinfo else d)]
 
 
 class Strict(BaseModel):
@@ -80,13 +82,13 @@ class PatientUpdateIn(Strict):
 
 class AppointmentIn(Strict):
     patient_id: int = Field(gt=0)
-    appointment_date: datetime
+    appointment_date: UtcDateTime
     notes: LongText | None = ""
     status: Status = "pending"
 
 
 class AppointmentUpdateIn(Strict):
-    appointment_date: datetime | None = None
+    appointment_date: UtcDateTime | None = None
     notes: LongText | None = None
     status: Status | None = None
 

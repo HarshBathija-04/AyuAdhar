@@ -37,12 +37,10 @@ def get_progress_log(progress_id):
 
 @progress_bp.post("/progress")
 @token_required
-@dietitian_required
 def create_progress_log():
+    """Dietitians log for their patients; patients may self-report their own weekly check-in."""
     data = parse(ProgressIn)
-    patient = db.session.get(Patient, data.patient_id)
-    if not patient or patient.user_id != request.user_id:
-        abort(404, description="Patient not found")
+    get_patient_or_404(data.patient_id)  # ownership check (404 otherwise)
     log = Progress(**data.model_dump())
     db.session.add(log)
     db.session.commit()
