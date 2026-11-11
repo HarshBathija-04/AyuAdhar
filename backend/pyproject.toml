@@ -1,0 +1,26 @@
+[project]
+name = "ayuaahar-api"
+version = "2.0.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+# S101 asserts in tests; B904 upstream errors deliberately hidden from clients; S104 0.0.0.0 bind in containers;
+# S311 random is for meal variety, not crypto; S105 explicit dev-only secret (refused in production); S112 dataset fallback paths
+ignore = ["S101", "B904", "E501", "S104", "S311", "S105", "S112"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106"]
+"seed.py" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
