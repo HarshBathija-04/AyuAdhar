@@ -1,304 +1,186 @@
-# AyuAahar - Ayurvedic Practice Management System
+# AyuAahar
 
-AyuAahar is a comprehensive cloud-based practice management and nutrient analysis system designed for Ayurvedic dietitians. It integrates modern nutrition science with traditional Ayurvedic dietary principles to help practitioners deliver personalized diet plans based on an individual's Prakriti (body constitution), Dosha balance, health conditions, and lifestyle.
+**Ayurvedic practice management for dietitians: prakriti-based diet plans, consultations, progress tracking and an AI wellness assistant.**
+
+[![CI](https://github.com/HarshBathija-04/AyuAdhar/actions/workflows/ci.yml/badge.svg)](https://github.com/HarshBathija-04/AyuAdhar/actions/workflows/ci.yml)
+
+| | |
+| --- | --- |
+| Live demo (Vercel) | `https://<your-vercel-app>.vercel.app` |
+| API (Render) | `https://<your-render-service>.onrender.com/health` |
+| Demo logins | `dietitian@ayuaahar.com` / `password123` and `patient@ayuaahar.com` / `password123` (one-click buttons on the sign-in page) |
+
+> The API runs on Render's free tier and sleeps when idle. The first request can take up to a minute; the app shows a "waking up the server" notice while it starts.
+
+> **Medical disclaimer:** AyuAahar provides general Ayurvedic and nutrition education. It is not medical advice and does not replace a qualified clinician.
 
 ## Features
 
-### Core Functionality
+- **Patient records** with prakriti (Vata, Pitta, Kapha, dual types, Tridosha), conditions, lifestyle, weight and height.
+- **Diet plan generation**: calorie target from Mifflin-St Jeor BMR, an activity factor and BMI adjustment; foods scored against the patient's doshas (rasa, virya, dosha effects) and spread across breakfast, lunch, dinner and snacks. Recommendations are enriched from the bundled AyurGenix dataset (`Dataset/`).
+- **Ask Ayu**, an AI wellness assistant (Groq, `openai/gpt-oss-120b`) that explains plans and Ayurvedic concepts using the patient's own profile and active plan. It runs only on the backend, is rate limited and always carries a medical disclaimer.
+- **Appointments**: month calendar and list; dietitians schedule, patients request consultations.
+- **Progress tracking**: weekly adherence and weight check-ins, logged by the dietitian or self-reported by the patient, with trends and reports.
+- **Food database** with nutrition per 100 g and Ayurvedic properties (rasa, guna, virya, vipaka).
+- **Two roles**: a clinical dashboard for dietitians and a personal wellness dashboard for patients, with server-side ownership checks.
 
-- **Authentication System**: JWT-based secure login with role-based access (Dietitian/Patient)
-- **Patient Management**: Add, edit, delete patients with detailed Ayurvedic profiles
-- **Appointment System**: Schedule consultations with calendar view
-- **Diet Plan Generation**: AI-powered personalized diet plans based on Prakriti and Dosha
-- **Nutrient Analysis**: Calculate total nutrition with Ayurvedic balance summary
-- **Progress Tracking**: Track patient diet adherence with visual charts
-- **Report Generation**: Downloadable PDF reports with patient details and diet plans
-- **Food Database**: Comprehensive database with nutritional and Ayurvedic properties
+## Screenshots
 
-### Ayurvedic Features
+| Landing | Dietitian dashboard |
+| --- | --- |
+| ![Landing page](docs/screenshots/landing-desktop.png) | ![Dietitian dashboard](docs/screenshots/dashboard-desktop.png) |
+| **Diet plan** | **Ask Ayu assistant** |
+| ![Generated diet plan](docs/screenshots/diet-plan-desktop.png) | ![AI assistant conversation](docs/screenshots/assistant-chat-desktop.png) |
+| **Patient wellness dashboard** | **Mobile (375 px)** |
+| ![Patient dashboard](docs/screenshots/patient-dashboard-desktop.png) | ![Mobile patient dashboard](docs/screenshots/patient-dashboard-mobile.png) |
 
-- **Prakriti Assessment**: Support for all seven prakriti types (Vata, Pitta, Kapha, combinations)
-- **Dosha Analysis**: Vata, Pitta, Kapha scoring and balance visualization
-- **Ayurvedic Properties**: Rasa (taste), Guna (qualities), Virya (potency), Vipaka (post-digestive effect)
-- **Food Compatibility**: Rule-based food recommendations based on prakriti
+## Architecture
 
-## Tech Stack
-
-### Backend
-- **Framework**: Python Flask
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Authentication**: JWT (JSON Web Tokens)
-- **API**: RESTful API design
-
-### Frontend
-- **Framework**: React.js with TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Charts**: Chart.js with react-chartjs-2
-- **State Management**: React Context API
-- **Routing**: React Router
-
-## Project Structure
-
-```
-ayuaahar/
-├── backend/
-│   ├── app.py                 # Main Flask application
-│   ├── requirements.txt       # Python dependencies
-│   ├── models/
-│   │   └── __init__.py        # Database models
-│   ├── routes/
-│   │   ├── auth.py            # Authentication routes
-│   │   ├── patients.py        # Patient management routes
-│   │   ├── appointments.py    # Appointment routes
-│   │   ├── diet_plans.py      # Diet plan routes
-│   │   └── progress.py        # Progress tracking routes
-│   ├── services/
-│   │   ├── diet_plan_service.py   # Diet plan generation logic
-│   │   └── report_service.py      # Report generation
-│   └── utils/
-│       └── auth.py            # JWT utilities
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   └── Layout.tsx     # Sidebar layout component
-    │   ├── contexts/
-    │   │   └── AuthContext.tsx    # Authentication context
-    │   ├── pages/
-    │   │   ├── Login.tsx      # Login page
-    │   │   ├── Register.tsx   # Registration page
-    │   │   ├── Dashboard.tsx  # Main dashboard
-    │   │   ├── Patients.tsx   # Patient list
-    │   │   ├── PatientForm.tsx    # Add/Edit patient
-    │   │   ├── PatientDetail.tsx  # Patient details
-    │   │   ├── DietPlan.tsx   # Diet plan view
-    │   │   ├── Appointments.tsx   # Calendar & appointments
-    │   │   └── FoodDatabase.tsx   # Food items database
-    │   ├── services/
-    │   │   └── api.ts         # API service
-    │   ├── types/
-    │   │   └── index.ts       # TypeScript types
-    │   ├── App.tsx            # Main app component
-    │   └── main.tsx           # Entry point
-    ├── package.json
-    └── index.html
+```mermaid
+flowchart LR
+    U[Browser] -->|HTTPS| V["Vercel<br/>React + Vite SPA<br/>(frontend/app)"]
+    V -->|"REST + JWT<br/>VITE_API_URL"| R["Render web service<br/>Flask + gunicorn<br/>(backend)"]
+    R -->|"SQLAlchemy / psycopg 3<br/>search_path = DB_SCHEMA"| P[("Render PostgreSQL<br/>schema: ayuadhar")]
+    R -->|"GROQ_API_KEY<br/>(server-side only)"| G["Groq API<br/>openai/gpt-oss-120b"]
+    GH["GitHub Actions<br/>keep-alive every 10 min"] -->|"GET /health"| R
 ```
 
-## Setup Instructions
+## Tech stack
 
-### Prerequisites
+| Layer | Tools |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite 7, Tailwind CSS 3, shadcn/ui (Radix), Chart.js, Sonner, Vitest |
+| Backend | Python 3.13, Flask 3, SQLAlchemy 2, Alembic, pydantic 2, PyJWT, bcrypt, Flask-Limiter, Flask-CORS, gunicorn |
+| AI | Groq Python SDK (`groq`), model `openai/gpt-oss-120b` |
+| Data | PostgreSQL (one schema per app on a shared database) |
+| Quality | pytest, ruff (lint + format), ESLint, Prettier, GitHub Actions CI |
+| Hosting | Vercel (frontend), Render web service + Render PostgreSQL (backend) |
 
-- Python 3.8+
-- Node.js 18+
-- PostgreSQL 12+
+## Local setup
 
-### Backend Setup
+Prerequisites: Python 3.13, Node 22+, and a PostgreSQL database (or Docker).
 
-1. **Navigate to backend directory**:
-   ```bash
-   cd backend
-   ```
+### Option A: Docker Compose
 
-2. **Create virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+docker compose up --build                 # Postgres + API on http://localhost:5000
+docker compose --profile web up --build   # also the Vite dev server on http://localhost:5173
+```
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Set `GROQ_API_KEY` in your shell first if you want the assistant to work.
 
-4. **Set up PostgreSQL database**:
-   ```bash
-   # Create database
-   createdb ayuaahar
-   
-   # Or use psql
-   psql -c "CREATE DATABASE ayuaahar;"
-   ```
+### Option B: run each part
 
-5. **Configure environment variables** (optional):
-   ```bash
-   export DATABASE_URL="postgresql://username:password@localhost:5432/ayuaahar"
-   export SECRET_KEY="your-secret-key-here"
-   ```
+```bash
+# API
+cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+cp .env.example .env                                # then edit DATABASE_URL, JWT_SECRET, GROQ_API_KEY
+alembic upgrade head                                # creates the schema and tables
+python seed.py                                      # idempotent demo data
+python app.py                                       # http://localhost:5000 (PORT in .env)
 
-6. **Initialize database**:
-   ```bash
-   python app.py
-   ```
-   The app will automatically create tables and seed sample data.
+# Web app (second terminal)
+cd frontend/app
+cp .env.example .env                                # VITE_API_URL=http://localhost:5000/api
+npm ci
+npm run dev                                         # http://localhost:5173
+```
 
-7. **Run the backend server**:
-   ```bash
-   python app.py
-   ```
-   The server will start at `http://localhost:5000`
+### Checks
 
-### Frontend Setup
+```bash
+cd backend && ruff check . && ruff format --check . && pytest -q
+cd frontend/app && npm run lint && npm test && npm run build
+```
 
-1. **Navigate to frontend directory**:
-   ```bash
-   cd frontend
-   ```
+Backend tests use an isolated `ayuadhar_test` schema in the database given by `TEST_DATABASE_URL` and drop it afterwards.
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+## Environment variables
 
-3. **Configure API URL** (optional):
-   Create a `.env` file:
-   ```
-   VITE_API_URL=http://localhost:5000/api
-   ```
+### Backend (`backend/.env`)
 
-4. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
-   The app will start at `http://localhost:5173`
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Postgres connection string (`postgres://` is accepted and normalised). |
+| `DB_SCHEMA` | no | Postgres schema for all tables. Default `ayuadhar`. Created automatically by the migrations. |
+| `JWT_SECRET` | yes in production | Secret for signing JWTs. The app refuses to start in production without it. |
+| `FRONTEND_URL` | yes | Allowed CORS origin(s), comma-separated, e.g. `https://ayuaahar.vercel.app`. |
+| `GROQ_API_KEY` | for AI | Groq API key. Without it the assistant returns a friendly 503. |
+| `APP_ENV` | no | `production` enables HSTS and the strict secret check. |
+| `PORT` | no | Port for `python app.py` (Render sets it for gunicorn). |
+| `DEMO_PASSWORD` | no | Password for seeded demo accounts. Default `password123`. |
+| `RATELIMIT_STORAGE_URI` | no | e.g. `redis://...` to share rate limits across instances. Default in-memory. |
 
-5. **Build for production**:
-   ```bash
-   npm run build
-   ```
+### Frontend (`frontend/app/.env`)
 
-## Default Login Credentials
+| Variable | Required | Description |
+| --- | --- | --- |
+| `VITE_API_URL` | yes | API base URL including `/api`, e.g. `https://ayuaahar-api.onrender.com/api`. |
 
-After initial setup, you can log in with:
-- **Email**: dietitian@ayuaahar.com
-- **Password**: password123
+## Deployment
 
-## API Endpoints
+### 1. Database (once, shared)
 
-### Authentication
-- `POST /api/register` - Register new user
-- `POST /api/login` - User login
-- `GET /api/profile` - Get user profile
+Create a single Render PostgreSQL instance by hand (the free plan allows one per account). Every app uses its own schema, so this project only needs its `DB_SCHEMA` (`ayuadhar`). Copy the **External/Internal Database URL**.
 
-### Patients
-- `GET /api/patients` - List all patients
-- `POST /api/patients` - Create new patient
-- `GET /api/patients/:id` - Get patient details
-- `PUT /api/patients/:id` - Update patient
-- `DELETE /api/patients/:id` - Delete patient
-- `GET /api/patients/stats` - Get patient statistics
+### 2. API on Render (Blueprint)
 
-### Appointments
-- `GET /api/appointments` - List appointments
-- `POST /api/appointments` - Create appointment
-- `PUT /api/appointments/:id` - Update appointment
-- `DELETE /api/appointments/:id` - Delete appointment
-- `GET /api/appointments/calendar` - Get calendar events
+1. In Render, choose **New > Blueprint** and select this repository. `render.yaml` declares the `ayuaahar-api` web service (`rootDir: backend`, free plan, health check `/health`). It does not create a database.
+2. When prompted, set `DATABASE_URL` to the shared database URL, `FRONTEND_URL` to your Vercel URL and `GROQ_API_KEY` to your Groq key. `JWT_SECRET` is generated automatically.
+3. Each deploy runs `alembic upgrade head && python seed.py` before starting gunicorn, so the schema and demo data are always present.
 
-### Diet Plans
-- `GET /api/diet-plans` - List diet plans
-- `POST /api/generate-diet-plan/:patient_id` - Generate diet plan
-- `GET /api/diet-plan/:patient_id` - Get patient's active diet plan
-- `GET /api/diet-plans/:id/report` - Generate diet report
+### 3. Web app on Vercel
 
-### Food Items
-- `GET /api/food-items` - List food items
-- `POST /api/food-items` - Add new food item
+1. **Add New > Project**, import the repository and set **Root Directory** to `frontend/app` (framework preset: Vite).
+2. Add `VITE_API_URL=https://<your-render-service>.onrender.com/api` and deploy. `vercel.json` provides SPA rewrites, security headers and long-lived asset caching.
+3. Put the final Vercel URL into the Render service's `FRONTEND_URL`.
 
-### Progress
-- `GET /api/progress` - List progress logs
-- `POST /api/progress` - Create progress log
-- `GET /api/progress/:patient_id/stats` - Get progress statistics
+### 4. Keep-alive
 
-## Database Schema
+Add a GitHub **repository variable** (Settings > Secrets and variables > Actions > Variables) named `BACKEND_URL` with the Render URL (no trailing `/health`). `.github/workflows/keep-alive.yml` pings `/health` every 10 minutes, which also exercises the database connection. Without the variable the job skips with a notice.
 
-### Users
-- id (Primary Key)
-- name
-- email (Unique)
-- password (Hashed)
-- role (dietitian/patient)
-- created_at
+## API overview
 
-### Patients
-- id (Primary Key)
-- user_id (Foreign Key to Users)
-- name
-- age
-- gender
-- prakriti
-- condition
-- lifestyle
-- created_at
-- updated_at
+All routes are under `/api` and return JSON. Errors have the shape `{"message", "code", "details?"}`.
 
-### FoodItems
-- id (Primary Key)
-- name
-- category
-- calories, protein, carbs, fats, fiber
-- rasa, guna, virya, vipaka
-- vata_effect, pitta_effect, kapha_effect
-- suitable_for
-- meal_type
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /health` (also `/api/health`): runs `SELECT 1`, returns 200 `{"status":"ok","db":"ok"}` or 503 |
+| Auth | `POST /register`, `POST /login` (rate limited), `GET/PUT /profile` |
+| Patients | `GET/POST /patients`, `GET/PUT/DELETE /patients/:id`, `GET /patients/stats`, `GET /patient/my-data` |
+| Appointments | `GET/POST /appointments`, `GET/PUT/DELETE /appointments/:id`, `GET /appointments/calendar`, `GET /appointments/stats` |
+| Diet plans | `POST /generate-diet-plan/:patientId`, `GET /diet-plan/:patientId`, `GET/PUT/DELETE /diet-plans/:id`, `GET /diet-plans/:id/report` |
+| Foods | `GET/POST /food-items`, `GET /food-items/:id`, `POST /analyze-nutrition` |
+| Progress | `GET/POST /progress`, `GET/PUT/DELETE /progress/:id`, `GET /progress/:patientId/stats`, `GET /progress/:patientId/report` |
+| AI | `POST /ai/chat` (`{messages, patient_id?}`, rate limited), `GET /ai/disclaimer` |
 
-### DietPlans
-- id (Primary Key)
-- patient_id (Foreign Key)
-- plan_name
-- plan_data (JSON)
-- total_calories, total_protein, total_carbs, total_fats
-- vata_score, pitta_score, kapha_score
-- is_active
-- created_at
+## Project structure
 
-### Appointments
-- id (Primary Key)
-- patient_id (Foreign Key)
-- appointment_date
-- notes
-- status
-- created_at
-
-### Progress
-- id (Primary Key)
-- patient_id (Foreign Key)
-- week_number
-- adherence_score
-- weight
-- notes
-- symptoms
-- created_at
-
-## Ayurvedic Concepts
-
-### Prakriti (Body Constitution)
-- **Vata**: Air & Space elements - light, dry, cold
-- **Pitta**: Fire & Water elements - hot, sharp, oily
-- **Kapha**: Earth & Water elements - heavy, cold, oily
-
-### Food Properties
-- **Rasa**: Taste (sweet, sour, salty, pungent, bitter, astringent)
-- **Guna**: Qualities (heavy, light, oily, dry, etc.)
-- **Virya**: Potency (heating or cooling)
-- **Vipaka**: Post-digestive effect
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+```
+.
+├── backend/                  Flask API (Render rootDir)
+│   ├── app.py                app factory, CORS, security headers, error handling, /health
+│   ├── config.py             env-driven settings (DATABASE_URL, DB_SCHEMA)
+│   ├── schemas.py            pydantic request validation
+│   ├── models/               SQLAlchemy models
+│   ├── routes/               auth, patients, appointments, diet plans, progress, ai
+│   ├── services/             diet plan engine, reports, Groq assistant
+│   ├── migrations/           Alembic migrations (schema-aware)
+│   ├── seed.py               idempotent demo data
+│   └── tests/                pytest suite
+├── frontend/app/             React + Vite SPA (Vercel root directory)
+│   ├── src/pages/            route pages (dashboards, patients, plans, Ask Ayu, ...)
+│   ├── src/components/       layout, shared UI, shadcn/ui primitives
+│   └── src/lib/              API error helpers, cold-start tracker (+ tests)
+├── Dataset/                  AyurGenix dataset used for plan recommendations
+├── docs/screenshots/         README screenshots
+├── Dockerfile, docker-compose.yml
+├── render.yaml               Render Blueprint (web service only)
+└── .github/workflows/        CI and keep-alive
+```
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Support
-
-For support, email support@ayuaahar.com or create an issue in the repository.
-
----
-
-**AyuAahar** - Bridging traditional Ayurvedic knowledge with modern health technology.
+MIT

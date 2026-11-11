@@ -163,3 +163,15 @@ def test_dashboard_stats_are_computed(client, dietitian):
     stats = client.get("/api/patients/stats", headers=dietitian).get_json()
     assert stats["active_diet_plans"] >= 1
     assert 0 < stats["average_adherence"] <= 100
+
+
+def test_health_returns_503_when_db_is_down(client, monkeypatch):
+    from models import db
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(db.session, "execute", boom)
+    res = client.get("/health")
+    assert res.status_code == 503
+    assert res.get_json() == {"status": "error", "db": "error"}
