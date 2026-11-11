@@ -6,7 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# Association tables for many-to-many relationships
 diet_plan_foods = db.Table(
     'diet_plan_foods',
     db.Column('diet_plan_id', db.Integer, db.ForeignKey('diet_plans.id'), primary_key=True),
@@ -26,7 +25,6 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'dietitian' or 'patient'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     patients = db.relationship('Patient', backref='dietitian', lazy=True, foreign_keys='Patient.user_id')
 
     def to_dict(self):
@@ -54,15 +52,14 @@ class Patient(db.Model):
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), nullable=False)  # 'male', 'female', 'other'
-    weight_kg = db.Column(db.Float, nullable=True)  # Weight in kilograms
-    height_cm = db.Column(db.Float, nullable=True)  # Height in centimetres
+    weight_kg = db.Column(db.Float, nullable=True)
+    height_cm = db.Column(db.Float, nullable=True)
     prakriti = db.Column(db.String(50), nullable=False)  # 'Vata', 'Pitta', 'Kapha', or combinations
-    condition = db.Column(db.Text, nullable=True)  # Health conditions
-    lifestyle = db.Column(db.Text, nullable=True)  # Lifestyle details
+    condition = db.Column(db.Text, nullable=True)
+    lifestyle = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     diet_plans = db.relationship('DietPlan', backref='patient', lazy=True, cascade='all, delete-orphan')
     appointments = db.relationship('Appointment', backref='patient', lazy=True, cascade='all, delete-orphan')
     progress_logs = db.relationship('Progress', backref='patient', lazy=True, cascade='all, delete-orphan')
@@ -97,10 +94,10 @@ class FoodItem(db.Model):
 
     # Nutritional information (per 100g)
     calories = db.Column(db.Float, nullable=False)
-    protein = db.Column(db.Float, nullable=False)  # in grams
-    carbs = db.Column(db.Float, nullable=False)  # in grams
-    fats = db.Column(db.Float, nullable=False)  # in grams
-    fiber = db.Column(db.Float, default=0)  # in grams
+    protein = db.Column(db.Float, nullable=False)
+    carbs = db.Column(db.Float, nullable=False)
+    fats = db.Column(db.Float, nullable=False)
+    fiber = db.Column(db.Float, default=0)
 
     # Ayurvedic properties
     rasa = db.Column(db.String(100), nullable=False)  # Taste: sweet, sour, salty, pungent, bitter, astringent
@@ -151,7 +148,7 @@ class DietPlan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False, index=True)
     plan_name = db.Column(db.String(100), default="Personalized Diet Plan")
-    plan_data = db.Column(db.Text, nullable=False)  # JSON string with meal details
+    plan_data = db.Column(db.Text, nullable=False)  # JSON: meal_plan, total_nutrition, ayurvedic_balance, ...
 
     # Nutritional summary
     total_calories = db.Column(db.Float, default=0)
@@ -167,17 +164,14 @@ class DietPlan(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     foods = db.relationship(
         'FoodItem', secondary=diet_plan_foods, lazy='subquery', backref=db.backref('diet_plans', lazy=True)
     )
 
     def get_plan_data(self):
-        """Parse JSON plan data"""
         return json.loads(self.plan_data) if self.plan_data else {}
 
     def set_plan_data(self, data):
-        """Set plan data as JSON string"""
         self.plan_data = json.dumps(data)
 
     def to_dict(self):
@@ -234,7 +228,7 @@ class Progress(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False, index=True)
     week_number = db.Column(db.Integer, nullable=False)
     adherence_score = db.Column(db.Integer, default=0)  # 0-100
-    weight = db.Column(db.Float, nullable=True)  # Current weight in kg
+    weight = db.Column(db.Float, nullable=True)
     notes = db.Column(db.Text, nullable=True)
     symptoms = db.Column(db.Text, nullable=True)  # Any symptoms or improvements
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -262,9 +256,8 @@ class FoodLog(db.Model):
     food_item_id = db.Column(db.Integer, db.ForeignKey('food_items.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     meal_type = db.Column(db.String(20), nullable=False)  # 'breakfast', 'lunch', 'dinner', 'snack'
-    quantity = db.Column(db.Float, default=100)  # in grams
+    quantity = db.Column(db.Float, default=100)
 
-    # Relationships
     food_item = db.relationship('FoodItem', backref='food_logs')
 
     def to_dict(self):

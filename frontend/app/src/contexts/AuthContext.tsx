@@ -6,8 +6,6 @@ import api from '@/services/api';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  /** True only while the stored session is restored on first load. */
-  isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -53,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
-    isLoading: false,
     login: async (credentials) => startSession(await api.login(credentials)),
     register: async (data) => startSession(await api.register(data)),
     logout: () => {

@@ -6,43 +6,26 @@ import random
 
 from models import DietPlan, FoodItem, db
 
-# ---------------------------------------------------------------------------
-# Load dataset once at import so every request reuses it
-# ---------------------------------------------------------------------------
-_DATASET_ROWS = []
 
-# Look for CSV alongside the backend files first (for Render), then in root Dataset/ folder
-_BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
-_BACKEND_DIR = os.path.join(_BACKEND_DIR, '..')  # services/ -> backend/
-_POSSIBLE_PATHS = [
-    os.path.join(_BACKEND_DIR, 'AyurGenixAI_Dataset.csv'),
-    os.path.join(_BACKEND_DIR, '..', 'Dataset', 'AyurGenixAI_Dataset.csv'),
-]
-
-
-def _load_dataset():
-    global _DATASET_ROWS
-    for path in _POSSIBLE_PATHS:
-        path = os.path.abspath(path)
+def _load_dataset() -> list[dict]:
+    """AyurGenix rows, loaded once at import. The CSV sits in backend/ on Render and in Dataset/ locally."""
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for path in (
+        os.path.join(backend_dir, 'AyurGenixAI_Dataset.csv'),
+        os.path.join(backend_dir, '..', 'Dataset', 'AyurGenixAI_Dataset.csv'),
+    ):
         if os.path.exists(path):
-            try:
-                with open(path, newline='', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    _DATASET_ROWS = list(reader)
-                break
-            except Exception:
-                continue
+            with open(path, newline='', encoding='utf-8') as f:
+                return list(csv.DictReader(f))
+    return []
 
 
-_load_dataset()
+_DATASET_ROWS = _load_dataset()
 
 
 class DietPlanService:
     """Service for generating personalised Ayurvedic diet plans."""
 
-    # ------------------------------------------------------------------
-    # Prakriti-based guidelines (tastes, qualities, virya)
-    # ------------------------------------------------------------------
     PRAKRITI_GUIDELINES = {
         'Vata': {
             'description': 'Vata types need warm, moist, grounding foods',
@@ -109,22 +92,18 @@ class DietPlanService:
         },
     }
 
-    # ------------------------------------------------------------------
-    # BMR / TDEE / BMI helpers
-    # ------------------------------------------------------------------
+    @classmethod
+    def _guidelines(cls, prakriti):
+        return cls.PRAKRITI_GUIDELINES.get(prakriti, cls.PRAKRITI_GUIDELINES['Tridosha'])
+
     @staticmethod
     def calculate_bmr(age: int, gender: str, weight_kg: float, height_cm: float) -> float:
         """Mifflin-St Jeor BMR equation (kcal/day)."""
-        if gender == 'female':
-            return (10 * weight_kg) + (6.25 * height_cm) - (5 * age) - 161
-        else:
-            return (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + 5
+        return 10 * weight_kg + 6.25 * height_cm - 5 * age + (-161 if gender == 'female' else 5)
 
     @staticmethod
     def calculate_bmi(weight_kg: float, height_cm: float) -> float:
-        """Body Mass Index."""
-        height_m = height_cm / 100
-        return weight_kg / (height_m**2)
+        return weight_kg / (height_cm / 100) ** 2
 
     @classmethod
     def calculate_target_calories(cls, patient) -> int:
@@ -137,13 +116,7 @@ class DietPlanService:
           - Obese        (≥30):       -500 kcal
         Falls back to prakriti-based defaults if weight/height are missing.
         """
-        prakriti = patient.prakriti
-        guidelines = cls.PRAKRITI_GUIDELINES.get(prakriti, cls.PRAKRITI_GUIDELINES['Tridosha'])
-
-        weight = getattr(patient, 'weight_kg', None)
-        height = getattr(patient, 'height_cm', None)
-
-        # Fallback if weight/height not recorded
+        weight, height = patient.weight_kg, patient.height_cm
         if not weight or not height:
             base = 2000 if patient.gender != 'female' else 1800
             if patient.age > 60:
@@ -152,26 +125,18 @@ class DietPlanService:
                 base += 100
             return base
 
-        bmr = cls.calculate_bmr(patient.age, patient.gender, weight, height)
-        activity = guidelines.get('activity_multiplier', 1.375)
-        tdee = bmr * activity
+        activity = cls._guidelines(patient.prakriti)['activity_multiplier']
+        tdee = cls.calculate_bmr(patient.age, patient.gender, weight, height) * activity
 
         bmi = cls.calculate_bmi(weight, height)
         if bmi < 18.5:
-            tdee += 300  # Underweight – slight surplus
-        elif bmi < 25:
-            pass  # Normal – maintenance
-        elif bmi < 30:
-            tdee -= 300  # Overweight – mild deficit
-        else:
-            tdee -= 500  # Obese – moderate deficit
-
-        # Keep within a sensible range
+            tdee += 300
+        elif 25 <= bmi < 30:
+            tdee -= 300
+        elif bmi >= 30:
+            tdee -= 500
         return max(1200, min(int(round(tdee)), 3500))
 
-    # ------------------------------------------------------------------
-    # Dataset lookup
-    # ------------------------------------------------------------------
     @classmethod
     def get_dataset_recommendations(cls, patient) -> dict:
         """
@@ -219,21 +184,17 @@ class DietPlanService:
             }
         return {}
 
-    # ------------------------------------------------------------------
-    # Food scoring
-    # ------------------------------------------------------------------
     @classmethod
     def get_food_score(cls, food, prakriti):
         """Compatibility score for a food item based on prakriti."""
         score = 0
-        guidelines = cls.PRAKRITI_GUIDELINES.get(prakriti, cls.PRAKRITI_GUIDELINES['Tridosha'])
+        guidelines = cls._guidelines(prakriti)
 
         suitable_prakritis = [p.strip() for p in food.suitable_for.split(',')]
         if prakriti in suitable_prakritis or 'all' in suitable_prakritis:
             score += 10
 
-        food_rasas = [r.strip().lower() for r in food.rasa.split(',')]
-        for rasa in food_rasas:
+        for rasa in (r.strip().lower() for r in food.rasa.split(',')):
             if rasa in guidelines['favored_tastes']:
                 score += 5
             elif rasa in guidelines['avoid_tastes']:
@@ -244,62 +205,38 @@ class DietPlanService:
         elif guidelines['favored_virya'] == 'neutral':
             score += 2
 
-        if 'Vata' in prakriti:
-            score += food.vata_effect * 2
-        if 'Pitta' in prakriti:
-            score += food.pitta_effect * 2
-        if 'Kapha' in prakriti:
-            score += food.kapha_effect * 2
-
+        for dosha in ('Vata', 'Pitta', 'Kapha'):
+            if dosha in prakriti:
+                score += getattr(food, f'{dosha.lower()}_effect') * 2
         return score
 
     @classmethod
-    def select_foods_for_meal(cls, meal_type, prakriti, target_calories, exclude_foods=None):
-        """Select appropriate foods for a specific meal."""
-        if exclude_foods is None:
-            exclude_foods = []
+    def select_foods_for_meal(cls, meal_type, prakriti, target_calories):
+        """Best-scoring foods (with a little randomness for variety) until the meal's calorie target is met."""
+        foods = FoodItem.query.filter(FoodItem.meal_type.in_([meal_type, 'any'])).all()
+        scored = sorted(
+            ((food, cls.get_food_score(food, prakriti) * random.uniform(0.8, 1.2)) for food in foods),
+            key=lambda x: x[1],
+            reverse=True,
+        )
 
-        foods = FoodItem.query.filter((FoodItem.meal_type == meal_type) | (FoodItem.meal_type == 'any')).all()
+        selected, calories = [], 0
+        for food, score in scored:
+            if score <= 0 or calories >= target_calories:
+                continue
+            if calories + food.calories <= target_calories * 1.15 or not selected:
+                selected.append(food)
+                calories += food.calories
+        return selected
 
-        scored_foods = []
-        for food in foods:
-            if food.name not in exclude_foods:
-                base_score = cls.get_food_score(food, prakriti)
-                randomized_score = base_score * random.uniform(0.8, 1.2)
-                scored_foods.append((food, randomized_score))
-
-        scored_foods.sort(key=lambda x: x[1], reverse=True)
-
-        selected_foods = []
-        current_calories = 0
-
-        for food, score in scored_foods:
-            if score > 0 and current_calories < target_calories:
-                if current_calories + food.calories <= target_calories * 1.15:
-                    selected_foods.append(food)
-                    current_calories += food.calories
-                elif not selected_foods:
-                    selected_foods.append(food)
-                    current_calories += food.calories
-
-        return selected_foods
-
-    # ------------------------------------------------------------------
-    # Full meal plan
-    # ------------------------------------------------------------------
     @classmethod
     def generate_meal_plan(cls, patient):
         """Generate a complete daily meal plan for a patient."""
         prakriti = patient.prakriti
-        guidelines = cls.PRAKRITI_GUIDELINES.get(prakriti, cls.PRAKRITI_GUIDELINES['Tridosha'])
-
-        # --- Accurate calorie target from age + weight + height -------
         base_calories = cls.calculate_target_calories(patient)
 
-        # BMI info to include in response
         bmi_info = None
-        weight = getattr(patient, 'weight_kg', None)
-        height = getattr(patient, 'height_cm', None)
+        weight, height = patient.weight_kg, patient.height_cm
         if weight and height:
             bmi = cls.calculate_bmi(weight, height)
             bmi_info = {
@@ -311,45 +248,24 @@ class DietPlanService:
                 'height_cm': height,
             }
 
-        # Distribute across meals (25 / 40 / 30 / 5)
-        breakfast_calories = base_calories * 0.25
-        lunch_calories = base_calories * 0.40
-        dinner_calories = base_calories * 0.30
-        snack_calories = base_calories * 0.05
+        meal_plan, all_foods = {}, []
+        # (plan key, food meal_type, share of daily calories)
+        for key, meal_type, share in (
+            ('breakfast', 'breakfast', 0.25),
+            ('lunch', 'lunch', 0.40),
+            ('dinner', 'dinner', 0.30),
+            ('snacks', 'snack', 0.05),
+        ):
+            target = base_calories * share
+            foods = cls.select_foods_for_meal(meal_type, prakriti, target)
+            all_foods += foods
+            meal_plan[key] = {
+                'foods': [{'name': f.name, 'calories': f.calories, 'quantity': '100g'} for f in foods],
+                'total_calories': sum(f.calories for f in foods),
+                'recommendations': cls.get_meal_recommendations(meal_type, prakriti),
+                'target_calories': round(target),
+            }
 
-        breakfast_foods = cls.select_foods_for_meal('breakfast', prakriti, breakfast_calories)
-        lunch_foods = cls.select_foods_for_meal('lunch', prakriti, lunch_calories)
-        dinner_foods = cls.select_foods_for_meal('dinner', prakriti, dinner_calories)
-        snack_foods = cls.select_foods_for_meal('snack', prakriti, snack_calories)
-
-        meal_plan = {
-            'breakfast': {
-                'foods': [{'name': f.name, 'calories': f.calories, 'quantity': '100g'} for f in breakfast_foods],
-                'total_calories': sum(f.calories for f in breakfast_foods),
-                'recommendations': cls.get_meal_recommendations('breakfast', prakriti),
-                'target_calories': round(breakfast_calories),
-            },
-            'lunch': {
-                'foods': [{'name': f.name, 'calories': f.calories, 'quantity': '100g'} for f in lunch_foods],
-                'total_calories': sum(f.calories for f in lunch_foods),
-                'recommendations': cls.get_meal_recommendations('lunch', prakriti),
-                'target_calories': round(lunch_calories),
-            },
-            'dinner': {
-                'foods': [{'name': f.name, 'calories': f.calories, 'quantity': '100g'} for f in dinner_foods],
-                'total_calories': sum(f.calories for f in dinner_foods),
-                'recommendations': cls.get_meal_recommendations('dinner', prakriti),
-                'target_calories': round(dinner_calories),
-            },
-            'snacks': {
-                'foods': [{'name': f.name, 'calories': f.calories, 'quantity': '100g'} for f in snack_foods],
-                'total_calories': sum(f.calories for f in snack_foods),
-                'recommendations': cls.get_meal_recommendations('snack', prakriti),
-                'target_calories': round(snack_calories),
-            },
-        }
-
-        all_foods = breakfast_foods + lunch_foods + dinner_foods + snack_foods
         total_nutrition = {
             'calories': sum(f.calories for f in all_foods),
             'protein': sum(f.protein for f in all_foods),
@@ -359,22 +275,16 @@ class DietPlanService:
             'target_calories': base_calories,
         }
 
-        ayurvedic_balance = cls.calculate_ayurvedic_balance(all_foods)
-        dataset_recs = cls.get_dataset_recommendations(patient)
-
         return {
             'meal_plan': meal_plan,
             'total_nutrition': total_nutrition,
-            'ayurvedic_balance': ayurvedic_balance,
-            'prakriti_guidelines': guidelines['description'],
+            'ayurvedic_balance': cls.calculate_ayurvedic_balance(all_foods),
+            'prakriti_guidelines': cls._guidelines(prakriti)['description'],
             'bmi_info': bmi_info,
-            'dataset_recommendations': dataset_recs,
+            'dataset_recommendations': cls.get_dataset_recommendations(patient),
             'foods': all_foods,
         }
 
-    # ------------------------------------------------------------------
-    # Meal-level text recommendations
-    # ------------------------------------------------------------------
     @classmethod
     def get_meal_recommendations(cls, meal_type, prakriti):
         """Get specific recommendations for each meal based on prakriti."""
@@ -398,12 +308,9 @@ class DietPlanService:
                 'snack': 'Honey water or light fruits. Avoid heavy snacks.',
             },
         }
-        base_prakriti = prakriti.split('-')[0] if '-' in prakriti else prakriti
+        base_prakriti = prakriti.split('-')[0]
         return recommendations.get(base_prakriti, recommendations['Vata']).get(meal_type, '')
 
-    # ------------------------------------------------------------------
-    # Ayurvedic balance
-    # ------------------------------------------------------------------
     @classmethod
     def calculate_ayurvedic_balance(cls, foods):
         vata_score = sum(f.vata_effect for f in foods)
@@ -466,9 +373,6 @@ class DietPlanService:
             'food_details': details,
         }
 
-    # ------------------------------------------------------------------
-    # Create & persist
-    # ------------------------------------------------------------------
     @classmethod
     def create_diet_plan(cls, patient_id, plan_name="Personalized Diet Plan"):
         """Create and save a diet plan for a patient."""
@@ -479,45 +383,25 @@ class DietPlanService:
             return None
 
         plan_data = cls.generate_meal_plan(patient)
+        foods = plan_data.pop('foods')
+        nutrition, balance = plan_data['total_nutrition'], plan_data['ayurvedic_balance']
 
-        # Deactivate previous active plans
         DietPlan.query.filter_by(patient_id=patient_id, is_active=True).update({'is_active': False})
-        db.session.flush()
-
         diet_plan = DietPlan(
             patient_id=patient_id,
             plan_name=plan_name,
-            total_calories=plan_data['total_nutrition']['calories'],
-            total_protein=plan_data['total_nutrition']['protein'],
-            total_carbs=plan_data['total_nutrition']['carbs'],
-            total_fats=plan_data['total_nutrition']['fats'],
-            vata_score=plan_data['ayurvedic_balance']['vata'],
-            pitta_score=plan_data['ayurvedic_balance']['pitta'],
-            kapha_score=plan_data['ayurvedic_balance']['kapha'],
+            total_calories=nutrition['calories'],
+            total_protein=nutrition['protein'],
+            total_carbs=nutrition['carbs'],
+            total_fats=nutrition['fats'],
+            vata_score=balance['vata'],
+            pitta_score=balance['pitta'],
+            kapha_score=balance['kapha'],
             is_active=True,
+            foods=list({f.id: f for f in foods}.values()),
         )
-
-        diet_plan.set_plan_data(
-            {
-                'meal_plan': plan_data['meal_plan'],
-                'total_nutrition': plan_data['total_nutrition'],
-                'ayurvedic_balance': plan_data['ayurvedic_balance'],
-                'prakriti_guidelines': plan_data['prakriti_guidelines'],
-                'bmi_info': plan_data['bmi_info'],
-                'dataset_recommendations': plan_data['dataset_recommendations'],
-            }
-        )
-
-        # Associate unique foods
-        seen_ids = set()
-        unique_foods = []
-        for food in plan_data['foods']:
-            if food.id not in seen_ids:
-                seen_ids.add(food.id)
-                unique_foods.append(food)
-        diet_plan.foods = unique_foods
-
+        diet_plan.set_plan_data(plan_data)
+        # Single commit: the previous plan is only deactivated if the new one is saved too
         db.session.add(diet_plan)
         db.session.commit()
-
         return diet_plan

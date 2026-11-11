@@ -1,6 +1,6 @@
 // AyuAahar - App shell with role-based routing (pages are code-split)
 import { lazy, Suspense, type ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -34,21 +34,19 @@ function FullPageLoader() {
   );
 }
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <FullPageLoader />;
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+function ProtectedRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Layout fallback={<PageSkeleton />} /> : <Navigate to="/login" replace />;
 }
 
 function PublicRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <FullPageLoader />;
+  const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 }
 
-function DietitianRoute({ children }: { children: ReactNode }) {
+function DietitianRoute() {
   const { user } = useAuth();
-  return user?.role === 'patient' ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+  return user?.role === 'patient' ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
 
 function AppRoutes() {
@@ -73,13 +71,7 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout fallback={<PageSkeleton />} />
-            </ProtectedRoute>
-          }
-        >
+        <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/appointments/new" element={<Appointments />} />
@@ -87,46 +79,13 @@ function AppRoutes() {
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/profile" element={<Profile />} />
 
-          <Route
-            path="/patients"
-            element={
-              <DietitianRoute>
-                <Patients />
-              </DietitianRoute>
-            }
-          />
-          <Route
-            path="/patients/new"
-            element={
-              <DietitianRoute>
-                <PatientForm />
-              </DietitianRoute>
-            }
-          />
-          <Route
-            path="/patients/:id"
-            element={
-              <DietitianRoute>
-                <PatientDetail />
-              </DietitianRoute>
-            }
-          />
-          <Route
-            path="/patients/:id/edit"
-            element={
-              <DietitianRoute>
-                <PatientForm />
-              </DietitianRoute>
-            }
-          />
-          <Route
-            path="/patients/:id/diet-plan"
-            element={
-              <DietitianRoute>
-                <DietPlan />
-              </DietitianRoute>
-            }
-          />
+          <Route element={<DietitianRoute />}>
+            <Route path="/patients" element={<Patients />} />
+            <Route path="/patients/new" element={<PatientForm />} />
+            <Route path="/patients/:id" element={<PatientDetail />} />
+            <Route path="/patients/:id/edit" element={<PatientForm />} />
+            <Route path="/patients/:id/diet-plan" element={<DietPlan />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

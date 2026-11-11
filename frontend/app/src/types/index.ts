@@ -187,9 +187,3 @@ export interface PatientMyData {
   progress_logs: ProgressLog[];
   appointments: Appointment[];
 }
-
-export interface ApiResponse<T> {
-  message?: string;
-  data?: T;
-  error?: string;
-}

@@ -3,13 +3,11 @@ from datetime import datetime
 
 
 class ReportService:
-    """Service for generating patient reports"""
+    """Diet and progress reports for a patient."""
 
     @classmethod
     def generate_diet_report(cls, patient, diet_plan):
-        """Generate a comprehensive diet report for a patient"""
-
-        report = {
+        return {
             'report_title': 'AyuAahar - Personalized Diet Report',
             'generated_date': datetime.now().strftime('%Y-%m-%d %H:%M'),
             'patient_info': {
@@ -20,26 +18,16 @@ class ReportService:
                 'health_conditions': patient.condition or 'None specified',
                 'lifestyle': patient.lifestyle or 'Not specified',
             },
-            'diet_plan': diet_plan.get_plan_data() if diet_plan else None,
+            'diet_plan': diet_plan.get_plan_data(),
             'nutritional_summary': {
-                'total_calories': diet_plan.total_calories if diet_plan else 0,
-                'total_protein': diet_plan.total_protein if diet_plan else 0,
-                'total_carbs': diet_plan.total_carbs if diet_plan else 0,
-                'total_fats': diet_plan.total_fats if diet_plan else 0,
+                k: getattr(diet_plan, k) for k in ('total_calories', 'total_protein', 'total_carbs', 'total_fats')
             },
-            'ayurvedic_analysis': {
-                'vata_score': diet_plan.vata_score if diet_plan else 0,
-                'pitta_score': diet_plan.pitta_score if diet_plan else 0,
-                'kapha_score': diet_plan.kapha_score if diet_plan else 0,
-            },
+            'ayurvedic_analysis': {k: getattr(diet_plan, k) for k in ('vata_score', 'pitta_score', 'kapha_score')},
             'recommendations': cls.get_prakriti_recommendations(patient.prakriti),
         }
 
-        return report
-
     @classmethod
     def get_prakriti_recommendations(cls, prakriti):
-        """Get lifestyle and dietary recommendations based on prakriti"""
         recommendations = {
             'Vata': {
                 'general_lifestyle': [
@@ -159,57 +147,30 @@ class ReportService:
 
     @classmethod
     def generate_progress_report(cls, patient, progress_logs):
-        """Generate a progress tracking report"""
-
-        # Calculate statistics
-        if progress_logs:
-            avg_adherence = sum(log.adherence_score for log in progress_logs) / len(progress_logs)
-            weights = [log.weight for log in progress_logs if log.weight]
-            weight_change = None
-            if len(weights) >= 2:
-                weight_change = weights[-1] - weights[0]
-        else:
-            avg_adherence = 0
-            weight_change = None
-
-        report = {
+        weights = [log.weight for log in progress_logs if log.weight]
+        avg_adherence = sum(log.adherence_score for log in progress_logs) / len(progress_logs) if progress_logs else 0
+        return {
             'report_title': 'AyuAahar - Progress Tracking Report',
             'generated_date': datetime.now().strftime('%Y-%m-%d %H:%M'),
             'patient_info': {'name': patient.name, 'prakriti': patient.prakriti},
             'summary': {
                 'total_weeks_tracked': len(progress_logs),
                 'average_adherence': round(avg_adherence, 1),
-                'weight_change': round(weight_change, 1) if weight_change is not None else None,
+                'weight_change': round(weights[-1] - weights[0], 1) if len(weights) >= 2 else None,
             },
             'weekly_logs': [log.to_dict() for log in progress_logs],
             'trends': cls.analyze_trends(progress_logs),
         }
 
-        return report
-
-    @classmethod
-    def analyze_trends(cls, progress_logs):
-        """Analyze trends in progress logs"""
+    @staticmethod
+    def analyze_trends(progress_logs):
         if len(progress_logs) < 2:
             return {'message': 'Insufficient data for trend analysis'}
-
-        # Sort by week
-        sorted_logs = sorted(progress_logs, key=lambda x: x.week_number)
-
-        adherence_trend = []
-        weight_trend = []
-
-        for log in sorted_logs:
-            adherence_trend.append({'week': log.week_number, 'score': log.adherence_score})
-            if log.weight:
-                weight_trend.append({'week': log.week_number, 'weight': log.weight})
-
+        logs = sorted(progress_logs, key=lambda x: x.week_number)
         return {
-            'adherence_trend': adherence_trend,
-            'weight_trend': weight_trend,
-            'improving': adherence_trend[-1]['score'] > adherence_trend[0]['score']
-            if len(adherence_trend) > 1
-            else None,
+            'adherence_trend': [{'week': log.week_number, 'score': log.adherence_score} for log in logs],
+            'weight_trend': [{'week': log.week_number, 'weight': log.weight} for log in logs if log.weight],
+            'improving': logs[-1].adherence_score > logs[0].adherence_score,
         }
 
     @staticmethod
