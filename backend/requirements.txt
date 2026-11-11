@@ -1,9 +1,15 @@
-# AyuAahar Backend Dependencies
-Flask==2.3.3
-Flask-SQLAlchemy==3.0.5
-Flask-CORS==4.0.0
-PyJWT==2.8.0
-Werkzeug==2.3.7
-psycopg2-binary>=2.9.9
-python-dotenv==1.0.0
-gunicorn==21.2.0
+# AyuAahar API - pinned runtime dependencies
+Flask==3.1.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.1.8
+alembic==1.20.1
+flask-cors==6.0.5
+Flask-Limiter==4.1.1
+PyJWT==2.15.1
+bcrypt==5.0.0
+psycopg[binary]==3.3.8
+pydantic==2.14.3
+email-validator==2.3.0
+python-dotenv==1.2.4
+gunicorn==27.0.0
+groq==1.7.0

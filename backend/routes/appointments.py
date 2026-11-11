@@ -1,261 +1,151 @@
-# AyuAahar - Appointment Management Routes
-from flask import Blueprint, request, jsonify
-from models import db, Appointment, Patient
-from utils.auth import token_required, dietitian_required
-from datetime import datetime
+# AyuAahar - Appointment routes
+import calendar
+from datetime import datetime, timedelta
 
-appointments_bp = Blueprint('appointments', __name__)
+from flask import Blueprint, abort, jsonify, request
+from sqlalchemy import func
 
-@appointments_bp.route('/appointments', methods=['GET'])
+from models import Appointment, Patient, db
+from schemas import AppointmentIn, AppointmentUpdateIn, parse, parse_partial
+from utils.auth import can_access_patient, dietitian_required, token_required
+
+appointments_bp = Blueprint("appointments", __name__)
+
+
+def _visible_patient_ids():
+    """Subquery of patient ids the caller may see (own roster or own record)."""
+    col = Patient.user_id if request.user_role == "dietitian" else Patient.patient_user_id
+    return db.session.query(Patient.id).filter(col == request.user_id)
+
+
+def _appointment_or_404(appointment_id: int) -> Appointment:
+    appt = db.session.get(Appointment, appointment_id)
+    if not appt or not can_access_patient(appt.patient):
+        abort(404, description="Appointment not found")
+    return appt
+
+
+def _parse_date(value: str | None):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        abort(400, description="Dates must be ISO 8601 (YYYY-MM-DD or YYYY-MM-DDTHH:MM)")
+
+
+@appointments_bp.get("/appointments")
 @token_required
 def get_appointments():
-    """Get all appointments"""
-    # Get query parameters
-    status = request.args.get('status')
-    patient_id = request.args.get('patient_id')
-    date_from = request.args.get('date_from')
-    date_to = request.args.get('date_to')
-    
-    # Base query
-    if request.user_role == 'dietitian':
-        # Get appointments for all patients under this dietitian
-        patient_ids = [p.id for p in Patient.query.filter_by(user_id=request.user_id).all()]
-        query = Appointment.query.filter(Appointment.patient_id.in_(patient_ids))
-    else:
-        # Patients can only see their own appointments
-        # For now, patients don't have direct appointments - they're linked to patient records
-        return jsonify({'appointments': [], 'count': 0}), 200
-    
-    # Apply filters
-    if status:
+    query = Appointment.query.filter(Appointment.patient_id.in_(_visible_patient_ids()))
+    if status := request.args.get("status"):
         query = query.filter_by(status=status)
-    if patient_id:
+    if patient_id := request.args.get("patient_id", type=int):
         query = query.filter_by(patient_id=patient_id)
-    if date_from:
-        try:
-            from_date = datetime.fromisoformat(date_from)
-            query = query.filter(Appointment.appointment_date >= from_date)
-        except:
-            pass
-    if date_to:
-        try:
-            to_date = datetime.fromisoformat(date_to)
-            query = query.filter(Appointment.appointment_date <= to_date)
-        except:
-            pass
-    
-    # Order by appointment date
+    if date_from := _parse_date(request.args.get("date_from")):
+        query = query.filter(Appointment.appointment_date >= date_from)
+    if date_to := _parse_date(request.args.get("date_to")):
+        query = query.filter(Appointment.appointment_date <= date_to)
     appointments = query.order_by(Appointment.appointment_date).all()
-    
-    return jsonify({
-        'appointments': [appt.to_dict() for appt in appointments],
-        'count': len(appointments)
-    }), 200
+    return jsonify(appointments=[a.to_dict() for a in appointments], count=len(appointments)), 200
 
-@appointments_bp.route('/appointments/<int:appointment_id>', methods=['GET'])
+
+@appointments_bp.get("/appointments/<int:appointment_id>")
 @token_required
 def get_appointment(appointment_id):
-    """Get a specific appointment"""
-    appointment = Appointment.query.get(appointment_id)
-    
-    if not appointment:
-        return jsonify({'message': 'Appointment not found'}), 404
-    
-    # Check authorization
-    if request.user_role == 'dietitian':
-        patient = Patient.query.get(appointment.patient_id)
-        if patient.user_id != request.user_id:
-            return jsonify({'message': 'Unauthorized access'}), 403
-    
-    return jsonify({'appointment': appointment.to_dict()}), 200
+    return jsonify(appointment=_appointment_or_404(appointment_id).to_dict()), 200
 
-@appointments_bp.route('/appointments', methods=['POST'])
+
+@appointments_bp.post("/appointments")
 @token_required
 @dietitian_required
 def create_appointment():
-    """Create a new appointment"""
-    data = request.get_json()
-    
-    # Validate required fields
-    required_fields = ['patient_id', 'appointment_date']
-    for field in required_fields:
-        if not data.get(field):
-            return jsonify({'message': f'{field} is required'}), 400
-    
-    # Verify patient exists and belongs to this dietitian
-    patient = Patient.query.get(data['patient_id'])
-    if not patient:
-        return jsonify({'message': 'Patient not found'}), 404
-    if patient.user_id != request.user_id:
-        return jsonify({'message': 'Unauthorized access'}), 403
-    
-    # Parse appointment date
-    try:
-        appointment_date = datetime.fromisoformat(data['appointment_date'])
-    except:
-        return jsonify({'message': 'Invalid appointment_date format. Use ISO format (YYYY-MM-DDTHH:MM)'}), 400
-    
-    try:
-        new_appointment = Appointment(
-            patient_id=data['patient_id'],
-            appointment_date=appointment_date,
-            notes=data.get('notes', ''),
-            status=data.get('status', 'pending')
-        )
-        
-        db.session.add(new_appointment)
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Appointment created successfully',
-            'appointment': new_appointment.to_dict()
-        }), 201
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Failed to create appointment', 'error': str(e)}), 500
+    data = parse(AppointmentIn)
+    patient = db.session.get(Patient, data.patient_id)
+    if not patient or patient.user_id != request.user_id:
+        abort(404, description="Patient not found")
+    appt = Appointment(**data.model_dump())
+    db.session.add(appt)
+    db.session.commit()
+    return jsonify(message="Appointment created successfully", appointment=appt.to_dict()), 201
 
-@appointments_bp.route('/appointments/<int:appointment_id>', methods=['PUT'])
+
+@appointments_bp.put("/appointments/<int:appointment_id>")
 @token_required
 @dietitian_required
 def update_appointment(appointment_id):
-    """Update an existing appointment"""
-    appointment = Appointment.query.get(appointment_id)
-    
-    if not appointment:
-        return jsonify({'message': 'Appointment not found'}), 404
-    
-    # Check authorization
-    patient = Patient.query.get(appointment.patient_id)
-    if patient.user_id != request.user_id:
-        return jsonify({'message': 'Unauthorized access'}), 403
-    
-    data = request.get_json()
-    
-    # Update allowed fields
-    if 'appointment_date' in data:
-        try:
-            appointment.appointment_date = datetime.fromisoformat(data['appointment_date'])
-        except:
-            return jsonify({'message': 'Invalid appointment_date format'}), 400
-    
-    if 'notes' in data:
-        appointment.notes = data['notes']
-    
-    if 'status' in data:
-        valid_statuses = ['pending', 'completed', 'cancelled']
-        if data['status'] not in valid_statuses:
-            return jsonify({'message': f'Status must be one of: {", ".join(valid_statuses)}'}), 400
-        appointment.status = data['status']
-    
-    try:
-        db.session.commit()
-        return jsonify({
-            'message': 'Appointment updated successfully',
-            'appointment': appointment.to_dict()
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Update failed', 'error': str(e)}), 500
+    appt = _appointment_or_404(appointment_id)
+    for field, value in parse_partial(AppointmentUpdateIn).items():
+        if value is not None or field == "notes":
+            setattr(appt, field, value)
+    db.session.commit()
+    return jsonify(message="Appointment updated successfully", appointment=appt.to_dict()), 200
 
-@appointments_bp.route('/appointments/<int:appointment_id>', methods=['DELETE'])
+
+@appointments_bp.delete("/appointments/<int:appointment_id>")
 @token_required
 @dietitian_required
 def delete_appointment(appointment_id):
-    """Delete an appointment"""
-    appointment = Appointment.query.get(appointment_id)
-    
-    if not appointment:
-        return jsonify({'message': 'Appointment not found'}), 404
-    
-    # Check authorization
-    patient = Patient.query.get(appointment.patient_id)
-    if patient.user_id != request.user_id:
-        return jsonify({'message': 'Unauthorized access'}), 403
-    
-    try:
-        db.session.delete(appointment)
-        db.session.commit()
-        return jsonify({'message': 'Appointment deleted successfully'}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Delete failed', 'error': str(e)}), 500
+    db.session.delete(_appointment_or_404(appointment_id))
+    db.session.commit()
+    return jsonify(message="Appointment deleted successfully"), 200
 
-@appointments_bp.route('/appointments/calendar', methods=['GET'])
+
+@appointments_bp.get("/appointments/calendar")
 @token_required
 @dietitian_required
 def get_calendar_view():
-    """Get appointments formatted for calendar view"""
-    year = request.args.get('year', datetime.now().year, type=int)
-    month = request.args.get('month', datetime.now().month, type=int)
-    
-    # Get date range for the month
-    from datetime import date
-    import calendar
-    
-    _, last_day = calendar.monthrange(year, month)
-    start_date = datetime(year, month, 1)
-    end_date = datetime(year, month, last_day, 23, 59, 59)
-    
-    # Get appointments for this dietitian's patients
-    patient_ids = [p.id for p in Patient.query.filter_by(user_id=request.user_id).all()]
-    
-    appointments = Appointment.query.filter(
-        Appointment.patient_id.in_(patient_ids),
-        Appointment.appointment_date >= start_date,
-        Appointment.appointment_date <= end_date
-    ).order_by(Appointment.appointment_date).all()
-    
-    # Format for calendar
-    calendar_events = []
-    for appt in appointments:
-        calendar_events.append({
-            'id': appt.id,
-            'title': f"{appt.patient.name} - {appt.status}",
-            'date': appt.appointment_date.strftime('%Y-%m-%d'),
-            'time': appt.appointment_date.strftime('%H:%M'),
-            'status': appt.status,
-            'patient_id': appt.patient_id,
-            'patient_name': appt.patient.name
-        })
-    
-    return jsonify({
-        'year': year,
-        'month': month,
-        'events': calendar_events,
-        'count': len(calendar_events)
-    }), 200
+    now = datetime.now()
+    year = request.args.get("year", now.year, type=int)
+    month = request.args.get("month", now.month, type=int)
+    if not (1 <= month <= 12 and 1970 <= year <= 2100):
+        abort(400, description="month must be 1-12 and year 1970-2100")
+    start = datetime(year, month, 1)
+    end = datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
 
-@appointments_bp.route('/appointments/stats', methods=['GET'])
+    appointments = (
+        Appointment.query.filter(
+            Appointment.patient_id.in_(_visible_patient_ids()),
+            Appointment.appointment_date.between(start, end),
+        )
+        .order_by(Appointment.appointment_date)
+        .all()
+    )
+    events = [
+        {
+            "id": a.id,
+            "title": f"{a.patient.name} - {a.status}",
+            "date": a.appointment_date.strftime("%Y-%m-%d"),
+            "time": a.appointment_date.strftime("%H:%M"),
+            "status": a.status,
+            "patient_id": a.patient_id,
+            "patient_name": a.patient.name,
+        }
+        for a in appointments
+    ]
+    return jsonify(year=year, month=month, events=events, count=len(events)), 200
+
+
+@appointments_bp.get("/appointments/stats")
 @token_required
 @dietitian_required
 def get_appointment_stats():
-    """Get appointment statistics"""
-    from sqlalchemy import func
-    
-    patient_ids = [p.id for p in Patient.query.filter_by(user_id=request.user_id).all()]
-    
-    # Total appointments
-    total = Appointment.query.filter(Appointment.patient_id.in_(patient_ids)).count()
-    
-    # By status
-    status_counts = db.session.query(
-        Appointment.status,
-        func.count(Appointment.id).label('count')
-    ).filter(Appointment.patient_id.in_(patient_ids)).group_by(Appointment.status).all()
-    
-    # Upcoming appointments (next 7 days)
-    from datetime import timedelta
-    next_week = datetime.utcnow() + timedelta(days=7)
+    ids = _visible_patient_ids()
+    total = Appointment.query.filter(Appointment.patient_id.in_(ids)).count()
+    status_counts = (
+        db.session.query(Appointment.status, func.count(Appointment.id))
+        .filter(Appointment.patient_id.in_(ids))
+        .group_by(Appointment.status)
+        .all()
+    )
+    now = datetime.utcnow()
     upcoming = Appointment.query.filter(
-        Appointment.patient_id.in_(patient_ids),
-        Appointment.appointment_date >= datetime.utcnow(),
-        Appointment.appointment_date <= next_week,
-        Appointment.status == 'pending'
+        Appointment.patient_id.in_(ids),
+        Appointment.appointment_date.between(now, now + timedelta(days=7)),
+        Appointment.status == "pending",
     ).count()
-    
-    return jsonify({
-        'total_appointments': total,
-        'status_breakdown': [{'status': s[0], 'count': s[1]} for s in status_counts],
-        'upcoming_this_week': upcoming
-    }), 200
+    return jsonify(
+        total_appointments=total,
+        status_breakdown=[{"status": s, "count": c} for s, c in status_counts],
+        upcoming_this_week=upcoming,
+    ), 200

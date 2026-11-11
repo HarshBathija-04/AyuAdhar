@@ -1,9 +1,10 @@
 # AyuAahar - Diet Plan Generation Service
 # Calorie target: Mifflin-St Jeor BMR -> TDEE -> BMI-adjusted goal
-from models import FoodItem, DietPlan, db
-import random
-import os
 import csv
+import os
+import random
+
+from models import DietPlan, FoodItem, db
 
 # ---------------------------------------------------------------------------
 # Load dataset once at import so every request reuses it
@@ -12,11 +13,12 @@ _DATASET_ROWS = []
 
 # Look for CSV alongside the backend files first (for Render), then in root Dataset/ folder
 _BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
-_BACKEND_DIR = os.path.join(_BACKEND_DIR, '..')   # services/ -> backend/
+_BACKEND_DIR = os.path.join(_BACKEND_DIR, '..')  # services/ -> backend/
 _POSSIBLE_PATHS = [
     os.path.join(_BACKEND_DIR, 'AyurGenixAI_Dataset.csv'),
     os.path.join(_BACKEND_DIR, '..', 'Dataset', 'AyurGenixAI_Dataset.csv'),
 ]
+
 
 def _load_dataset():
     global _DATASET_ROWS
@@ -30,6 +32,7 @@ def _load_dataset():
                 break
             except Exception:
                 continue
+
 
 _load_dataset()
 
@@ -48,7 +51,7 @@ class DietPlanService:
             'favored_qualities': ['heavy', 'oily', 'moist', 'warm'],
             'avoid_qualities': ['light', 'dry', 'cold'],
             'favored_virya': 'heating',
-            'activity_multiplier': 1.375,   # lightly active default
+            'activity_multiplier': 1.375,  # lightly active default
         },
         'Pitta': {
             'description': 'Pitta types need cool, soothing, moderate foods',
@@ -66,7 +69,7 @@ class DietPlanService:
             'favored_qualities': ['light', 'warm', 'dry'],
             'avoid_qualities': ['heavy', 'cold', 'oily'],
             'favored_virya': 'heating',
-            'activity_multiplier': 1.2,    # Kapha tends to lower activity
+            'activity_multiplier': 1.2,  # Kapha tends to lower activity
         },
         'Vata-Pitta': {
             'description': 'Vata-Pitta types need balancing warm and cool foods',
@@ -121,7 +124,7 @@ class DietPlanService:
     def calculate_bmi(weight_kg: float, height_cm: float) -> float:
         """Body Mass Index."""
         height_m = height_cm / 100
-        return weight_kg / (height_m ** 2)
+        return weight_kg / (height_m**2)
 
     @classmethod
     def calculate_target_calories(cls, patient) -> int:
@@ -155,13 +158,13 @@ class DietPlanService:
 
         bmi = cls.calculate_bmi(weight, height)
         if bmi < 18.5:
-            tdee += 300        # Underweight – slight surplus
+            tdee += 300  # Underweight – slight surplus
         elif bmi < 25:
-            pass               # Normal – maintenance
+            pass  # Normal – maintenance
         elif bmi < 30:
-            tdee -= 300        # Overweight – mild deficit
+            tdee -= 300  # Overweight – mild deficit
         else:
-            tdee -= 500        # Obese – moderate deficit
+            tdee -= 500  # Obese – moderate deficit
 
         # Keep within a sensible range
         return max(1200, min(int(round(tdee)), 3500))
@@ -188,7 +191,7 @@ class DietPlanService:
 
         for row in _DATASET_ROWS:
             row_prakriti = row.get('Constitution/Prakriti', '').lower()
-            row_disease  = row.get('Disease', '').lower()
+            row_disease = row.get('Disease', '').lower()
             row_symptoms = row.get('Symptoms', '').lower()
 
             score = 0
@@ -206,12 +209,12 @@ class DietPlanService:
 
         if best_row and best_score > 0:
             return {
-                'disease_match':      best_row.get('Disease', ''),
-                'diet_advice':        best_row.get('Diet and Lifestyle Recommendations', ''),
-                'yoga_therapy':       best_row.get('Yoga & Physical Therapy', ''),
-                'ayurvedic_herbs':    best_row.get('Ayurvedic Herbs', ''),
-                'formulation':        best_row.get('Formulation', ''),
-                'prevention':         best_row.get('Prevention', ''),
+                'disease_match': best_row.get('Disease', ''),
+                'diet_advice': best_row.get('Diet and Lifestyle Recommendations', ''),
+                'yoga_therapy': best_row.get('Yoga & Physical Therapy', ''),
+                'ayurvedic_herbs': best_row.get('Ayurvedic Herbs', ''),
+                'formulation': best_row.get('Formulation', ''),
+                'prevention': best_row.get('Prevention', ''),
                 'patient_recommendations': best_row.get('Patient Recommendations', ''),
             }
         return {}
@@ -256,9 +259,7 @@ class DietPlanService:
         if exclude_foods is None:
             exclude_foods = []
 
-        foods = FoodItem.query.filter(
-            (FoodItem.meal_type == meal_type) | (FoodItem.meal_type == 'any')
-        ).all()
+        foods = FoodItem.query.filter((FoodItem.meal_type == meal_type) | (FoodItem.meal_type == 'any')).all()
 
         scored_foods = []
         for food in foods:
@@ -289,7 +290,7 @@ class DietPlanService:
     @classmethod
     def generate_meal_plan(cls, patient):
         """Generate a complete daily meal plan for a patient."""
-        prakriti  = patient.prakriti
+        prakriti = patient.prakriti
         guidelines = cls.PRAKRITI_GUIDELINES.get(prakriti, cls.PRAKRITI_GUIDELINES['Tridosha'])
 
         # --- Accurate calorie target from age + weight + height -------
@@ -304,10 +305,7 @@ class DietPlanService:
             bmi_info = {
                 'bmi': round(bmi, 1),
                 'category': (
-                    'Underweight' if bmi < 18.5 else
-                    'Normal'      if bmi < 25   else
-                    'Overweight'  if bmi < 30   else
-                    'Obese'
+                    'Underweight' if bmi < 18.5 else 'Normal' if bmi < 25 else 'Overweight' if bmi < 30 else 'Obese'
                 ),
                 'weight_kg': weight,
                 'height_cm': height,
@@ -315,14 +313,14 @@ class DietPlanService:
 
         # Distribute across meals (25 / 40 / 30 / 5)
         breakfast_calories = base_calories * 0.25
-        lunch_calories     = base_calories * 0.40
-        dinner_calories    = base_calories * 0.30
-        snack_calories     = base_calories * 0.05
+        lunch_calories = base_calories * 0.40
+        dinner_calories = base_calories * 0.30
+        snack_calories = base_calories * 0.05
 
         breakfast_foods = cls.select_foods_for_meal('breakfast', prakriti, breakfast_calories)
-        lunch_foods     = cls.select_foods_for_meal('lunch',     prakriti, lunch_calories)
-        dinner_foods    = cls.select_foods_for_meal('dinner',    prakriti, dinner_calories)
-        snack_foods     = cls.select_foods_for_meal('snack',     prakriti, snack_calories)
+        lunch_foods = cls.select_foods_for_meal('lunch', prakriti, lunch_calories)
+        dinner_foods = cls.select_foods_for_meal('dinner', prakriti, dinner_calories)
+        snack_foods = cls.select_foods_for_meal('snack', prakriti, snack_calories)
 
         meal_plan = {
             'breakfast': {
@@ -354,24 +352,24 @@ class DietPlanService:
         all_foods = breakfast_foods + lunch_foods + dinner_foods + snack_foods
         total_nutrition = {
             'calories': sum(f.calories for f in all_foods),
-            'protein':  sum(f.protein  for f in all_foods),
-            'carbs':    sum(f.carbs    for f in all_foods),
-            'fats':     sum(f.fats     for f in all_foods),
-            'fiber':    sum(f.fiber    for f in all_foods),
+            'protein': sum(f.protein for f in all_foods),
+            'carbs': sum(f.carbs for f in all_foods),
+            'fats': sum(f.fats for f in all_foods),
+            'fiber': sum(f.fiber for f in all_foods),
             'target_calories': base_calories,
         }
 
         ayurvedic_balance = cls.calculate_ayurvedic_balance(all_foods)
-        dataset_recs      = cls.get_dataset_recommendations(patient)
+        dataset_recs = cls.get_dataset_recommendations(patient)
 
         return {
-            'meal_plan':         meal_plan,
-            'total_nutrition':   total_nutrition,
+            'meal_plan': meal_plan,
+            'total_nutrition': total_nutrition,
             'ayurvedic_balance': ayurvedic_balance,
             'prakriti_guidelines': guidelines['description'],
-            'bmi_info':          bmi_info,
+            'bmi_info': bmi_info,
             'dataset_recommendations': dataset_recs,
-            'foods':             all_foods,
+            'foods': all_foods,
         }
 
     # ------------------------------------------------------------------
@@ -383,21 +381,21 @@ class DietPlanService:
         recommendations = {
             'Vata': {
                 'breakfast': 'Warm, cooked foods. Avoid cold cereals.',
-                'lunch':     'Largest meal of the day. Include warm soups.',
-                'dinner':    'Light, warm meal. Eat 2-3 hours before bed.',
-                'snack':     'Warm milk, nuts, or ripe fruits.',
+                'lunch': 'Largest meal of the day. Include warm soups.',
+                'dinner': 'Light, warm meal. Eat 2-3 hours before bed.',
+                'snack': 'Warm milk, nuts, or ripe fruits.',
             },
             'Pitta': {
                 'breakfast': 'Cool or room temperature foods. Sweet fruits.',
-                'lunch':     'Moderate portions. Include cooling vegetables.',
-                'dinner':    'Light, early dinner. Avoid spicy foods.',
-                'snack':     'Sweet fruits, coconut water, or cool milk.',
+                'lunch': 'Moderate portions. Include cooling vegetables.',
+                'dinner': 'Light, early dinner. Avoid spicy foods.',
+                'snack': 'Sweet fruits, coconut water, or cool milk.',
             },
             'Kapha': {
                 'breakfast': 'Light or skip breakfast. Warm spices.',
-                'lunch':     'Main meal. Include pungent spices.',
-                'dinner':    'Very light, early dinner. No heavy foods.',
-                'snack':     'Honey water or light fruits. Avoid heavy snacks.',
+                'lunch': 'Main meal. Include pungent spices.',
+                'dinner': 'Very light, early dinner. No heavy foods.',
+                'snack': 'Honey water or light fruits. Avoid heavy snacks.',
             },
         }
         base_prakriti = prakriti.split('-')[0] if '-' in prakriti else prakriti
@@ -408,26 +406,26 @@ class DietPlanService:
     # ------------------------------------------------------------------
     @classmethod
     def calculate_ayurvedic_balance(cls, foods):
-        vata_score  = sum(f.vata_effect  for f in foods)
+        vata_score = sum(f.vata_effect for f in foods)
         pitta_score = sum(f.pitta_effect for f in foods)
         kapha_score = sum(f.kapha_effect for f in foods)
 
         total = abs(vata_score) + abs(pitta_score) + abs(kapha_score)
         if total > 0:
-            vata_pct  = (vata_score  + total / 2) / total * 100
+            vata_pct = (vata_score + total / 2) / total * 100
             pitta_pct = (pitta_score + total / 2) / total * 100
             kapha_pct = (kapha_score + total / 2) / total * 100
         else:
             vata_pct = pitta_pct = kapha_pct = 33.33
 
         return {
-            'vata':             round(vata_score, 1),
-            'pitta':            round(pitta_score, 1),
-            'kapha':            round(kapha_score, 1),
-            'vata_percentage':  round(vata_pct, 1),
+            'vata': round(vata_score, 1),
+            'pitta': round(pitta_score, 1),
+            'kapha': round(kapha_score, 1),
+            'vata_percentage': round(vata_pct, 1),
             'pitta_percentage': round(pitta_pct, 1),
             'kapha_percentage': round(kapha_pct, 1),
-            'balance_status':   cls.get_balance_status(vata_score, pitta_score, kapha_score),
+            'balance_status': cls.get_balance_status(vata_score, pitta_score, kapha_score),
         }
 
     @classmethod
@@ -443,6 +441,31 @@ class DietPlanService:
         else:
             return 'Moderately Balanced'
 
+    @staticmethod
+    def analyze_nutrition(items):
+        """Totals and Ayurvedic summary for [(FoodItem, grams), ...]; nutrition values are per 100 g."""
+        total = {'calories': 0.0, 'protein': 0.0, 'carbs': 0.0, 'fats': 0.0, 'fiber': 0.0}
+        summary = {
+            'rasa_counts': {},
+            'virya_counts': {'heating': 0, 'cooling': 0},
+            'vipaka_counts': {'sweet': 0, 'sour': 0, 'pungent': 0},
+        }
+        details = []
+        for food, quantity in items:
+            ratio = quantity / 100
+            for key in total:
+                total[key] += (getattr(food, key) or 0) * ratio
+            for rasa in (r.strip() for r in food.rasa.split(',') if r.strip()):
+                summary['rasa_counts'][rasa] = summary['rasa_counts'].get(rasa, 0) + 1
+            summary['virya_counts'][food.virya] = summary['virya_counts'].get(food.virya, 0) + 1
+            summary['vipaka_counts'][food.vipaka] = summary['vipaka_counts'].get(food.vipaka, 0) + 1
+            details.append({'name': food.name, 'quantity': quantity, 'calories': round(food.calories * ratio, 1)})
+        return {
+            'total_nutrition': {k: round(v, 1) for k, v in total.items()},
+            'ayurvedic_summary': summary,
+            'food_details': details,
+        }
+
     # ------------------------------------------------------------------
     # Create & persist
     # ------------------------------------------------------------------
@@ -451,7 +474,7 @@ class DietPlanService:
         """Create and save a diet plan for a patient."""
         from models import Patient
 
-        patient = Patient.query.get(patient_id)
+        patient = db.session.get(Patient, patient_id)
         if not patient:
             return None
 
@@ -474,14 +497,16 @@ class DietPlanService:
             is_active=True,
         )
 
-        diet_plan.set_plan_data({
-            'meal_plan':         plan_data['meal_plan'],
-            'total_nutrition':   plan_data['total_nutrition'],
-            'ayurvedic_balance': plan_data['ayurvedic_balance'],
-            'prakriti_guidelines': plan_data['prakriti_guidelines'],
-            'bmi_info':          plan_data['bmi_info'],
-            'dataset_recommendations': plan_data['dataset_recommendations'],
-        })
+        diet_plan.set_plan_data(
+            {
+                'meal_plan': plan_data['meal_plan'],
+                'total_nutrition': plan_data['total_nutrition'],
+                'ayurvedic_balance': plan_data['ayurvedic_balance'],
+                'prakriti_guidelines': plan_data['prakriti_guidelines'],
+                'bmi_info': plan_data['bmi_info'],
+                'dataset_recommendations': plan_data['dataset_recommendations'],
+            }
+        )
 
         # Associate unique foods
         seen_ids = set()
